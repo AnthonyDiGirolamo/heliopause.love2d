@@ -272,6 +272,8 @@ function love.update(dt)
   -- an = (an + .001) % 1
 end
 
+deg270 = math.pi*1.5
+
 function love.draw()
 
   love.graphics.setCanvas(canvas)
@@ -294,7 +296,7 @@ function love.draw()
     canvas,
     0,
     screen_height,
-    math.pi*1.5,
+    deg270,
     screen_height/pixel_screen_height, -- scale x
     screen_height/pixel_screen_height -- scale y
     -- 0, -- Origin offset (x-axis).
@@ -309,7 +311,7 @@ function love.draw()
   --   (screen_width-screen_height)/2, -- x
   --   0, -- y
   --   0, -- radians
-  --   -- math.pi*1.5, -- radians
+  --   -- deg270, -- radians
   --   screen_height/pixel_screen_height, -- scale x
   --   screen_height/pixel_screen_height -- scale y
   --   -- 0, -- Origin offset (x-axis).
@@ -337,25 +339,28 @@ function love.draw()
   color(7)
   love.graphics.setFont(debugfont)
 
-  local startx = screen_height
-  local messages = {
-  "FPS: " .. love.timer.getFPS(),
-  "dt: " .. love.timer.getDelta(),
-  "time: " .. time,
-  "os.time: " .. os.time(),
-  "width: " .. screen_width,
-  "height: " .. screen_height,
+  local debug_messages = {
+    ("FPS:     " .. love.timer.getFPS()),
+    ("dt:      " .. love.timer.getDelta()),
+    ("time:    " .. time),
+    ("os.time: " .. os.time()),
+    ("screen:  " .. screen_width.." x "..screen_height),
   }
-  for index, message in ipairs(messages) do
-    love.graphics.print(message, screen_height-50, screen_height+(index*50), math.pi*1.5)
-  end
+
   touches = love.touch.getTouches()
-  -- love.graphics.print("touch count: " .. #touches, 50, 350)
   if #touches > 0 then
     for i, id in ipairs(touches) do
       local x, y = love.touch.getPosition(id)
-      love.graphics.print("touch "..i..": "..x..", "..y, 50, i*50+350)
+      add(debug_messages, "touch "..i..": "..x..", "..y)
     end
+  end
+
+  for i, message in ipairs(debug_messages) do
+    love.graphics.print(
+      message,
+      i*36+screen_height,
+      screen_height-50,
+      deg270)
   end
 
   -- love.graphics.print("stars: " .. #sect.starfield, 50, 350)
