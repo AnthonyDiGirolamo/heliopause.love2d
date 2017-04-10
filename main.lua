@@ -236,11 +236,11 @@ local screen_center = Vector(floor(pixel_screen_width/2),floor(pixel_screen_heig
 --sect = sector.new()
 
 function love.load(arg)
-  pixelfont = love.graphics.newFont("small_font.ttf", 8)
+  pixelfont = love.graphics.newFont("PICO-8.ttf", 5)
   -- pixelfont = love.graphics.newFont("Droid Sans Mono.ttf", 12)
   -- debugfont = love.graphics.newFont(32)
   -- debugfont = love.graphics.newFont("small_font.ttf", 8)
-  debugfont = love.graphics.newFont("FSD - PragmataProMono.ttf", 32)
+  debugfont = love.graphics.newFont("PragmataProMono.ttf", 32)
   love.graphics.setLineWidth(1)
   love.graphics.setLineStyle("rough")
   -- love.graphics.setLineStyle("smooth")
@@ -1728,15 +1728,15 @@ function text(text,x,y,textcolor,outline)
       color(s)
       love.graphics.print(text,
                           x+outlinedindex[i],
-                          y+outlinedindex[i+1])
+                          y+outlinedindex[i+1]+1)
     end
     c=0
   else
     color(s)
-    love.graphics.print(text,x+1,y+1)
+    love.graphics.print(text,x+1,y+1+1)
   end
   color(c)
-  love.graphics.print(text,x,y)
+  love.graphics.print(text,x,y+1)
 end
 
 function note_add(text)
