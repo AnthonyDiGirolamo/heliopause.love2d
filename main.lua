@@ -2,10 +2,18 @@
 local shine = require("shine")
 local lume = require("lume")
 
+-- load vector.moon
 local round, randomseed, random, random_int, cos, sin, sqrt, sub, add, del, abs, min, max, floor, ceil
 do
   local _obj_0 = require("helpers")
   round, randomseed, random, random_int, cos, sin, sqrt, sub, add, del, abs, min, max, floor, ceil = _obj_0.round, _obj_0.randomseed, _obj_0.random, _obj_0.random_int, _obj_0.cos, _obj_0.sin, _obj_0.sqrt, _obj_0.sub, _obj_0.add, _obj_0.del, _obj_0.abs, _obj_0.min, _obj_0.max, _obj_0.floor, _obj_0.ceil
+end
+
+-- load vector.moon
+local Vector
+do
+  local _obj_0 = require("vector")
+  Vector = _obj_0.Vector
 end
 
 -- button_positions = {
@@ -92,104 +100,7 @@ pink        = 14
 peach       = 15
 
 
-local Vector={}
-Vector.__index=Vector
-function Vector.new(x,y)
-  return setmetatable({x=x or 0,y=y or 0},Vector)
-end
 
-function Vector:add(v)
-  self.x = self.x + v.x
-  self.y = self.y + v.y
-  return self
-end
-
-function Vector.__add(a,b)
-  return Vector.new(a.x+b.x,a.y+b.y)
-end
-function Vector.__sub(a,b)
-  return Vector.new(a.x-b.x,a.y-b.y)
-end
-function Vector.__mul(a,b)
-  return Vector.new(a.x*b,a.y*b)
-end
-function Vector.__div(a,b)
-  return Vector.new(a.x/b,a.y/b)
-end
-function Vector.__eq(a,b)
-  return a.x == b.x and b.y == a.y
-end
-
-function Vector:clone()
-  return Vector.new(self.x,self.y)
-end
-function Vector:about_equals(v)
-  return round(v.x)==self.x and round(v.y)==self.y end
-function Vector:angle()
-  local a = math.atan2(self.y,self.x) / (math.pi*2)
-  if a < 0 then
-    a = (.5 - -1*a) + .5
-  end
-  return a
-end
-
-function Vector:length()
-  return math.sqrt(self.x^2+self.y^2)
-end
-function Vector:scaled_length()
-  return 182*math.sqrt((self.x/182)^2+(self.y/182)^2)
-end
-function Vector:perpendicular()
-  return Vector.new(-self.y,self.x)
-end
-
-function Vector:normalize()
-  local l=self:length()
-  self.x = self.x / l
-  self.y = self.y / l
-  return self
-end
-
-function Vector:rotate(phi)
-  local c=cos(phi)
-  local s=sin(phi)
-  local x=self.x
-  local y=self.y
-  self.x=c*x-s*y
-  self.y=s*x+c*y
-  return self
-end
-
-function Vector:round()
-  self.x=round(self.x)
-  self.y=round(self.y)
-  return self
-end
-
-function Vector:draw_point(c)
-  color(c)
-  love.graphics.points(round(self.x), round(self.y))
-end
-
-function Vector:draw_line(v,c)
-  color(c)
-  local a = self:clone():round()
-  local b = v:clone():round()
-  if a == b then
-    love.graphics.points(a.x, a.y)
-  else
-    love.graphics.line(a.x, a.y, b.x, b.y)
-  end
-end
-
-function Vector:draw_circle(radius,c,fill)
-  local draw_mode = "line"
-  if fill then draw_mode = "fill" end
-  color(c)
-  love.graphics.circle(draw_mode, self.x, self.y, radius)
-end
-
-setmetatable(Vector,{__call=function(_,...) return Vector.new(...) end})
 
 function vector_distance(a,b)
   return (b-a):scaled_length()

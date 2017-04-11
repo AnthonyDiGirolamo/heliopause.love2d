@@ -38,8 +38,6 @@ max = math.max
 floor = math.floor
 ceil = math.ceil
 
--- print round(1.6)
--- print round(1.4)
 {
   :round
   :randomseed
