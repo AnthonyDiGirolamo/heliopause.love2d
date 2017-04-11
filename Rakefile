@@ -7,6 +7,7 @@ task default: [LOVEFILE, :launch]
 task LOVEFILE do |t|
   rm_f LOVEFILE
   rm_f "~/storage/downloads/#{LOVEFILE}"
+  sh "moonc *.moon"
   sh "zip -r #{LOVEFILE} *"
   sh "cp #{LOVEFILE} ~/storage/downloads/"
 end

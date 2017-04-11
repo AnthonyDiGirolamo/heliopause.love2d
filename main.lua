@@ -1,6 +1,12 @@
 -- debug = true
+local shine = require("shine")
+local lume = require("lume")
 
--- local Vector = require("vector")
+local round, randomseed, random, random_int, cos, sin, sqrt, sub, add, del, abs, min, max, floor, ceil
+do
+  local _obj_0 = require("helpers")
+  round, randomseed, random, random_int, cos, sin, sqrt, sub, add, del, abs, min, max, floor, ceil = _obj_0.round, _obj_0.randomseed, _obj_0.random, _obj_0.random_int, _obj_0.cos, _obj_0.sin, _obj_0.sqrt, _obj_0.sub, _obj_0.add, _obj_0.del, _obj_0.abs, _obj_0.min, _obj_0.max, _obj_0.floor, _obj_0.ceil
+end
 
 -- button_positions = {
 --   Vector
@@ -44,44 +50,11 @@ function rectfill(x1, y1, x2, y2, c)
   love.graphics.rectangle("fill", x1, y1, w, h)
 end
 
-local shine = require("shine")
-local lume = require("lume")
-
-local del = lume.remove
-
-local abs = math.abs
-local min = math.min
-local max = math.max
-local floor = math.floor
-local ceil = math.ceil
--- local random = math.random
--- local randomseed = math.randomseed
--- local random = love.math.random
-local randomseed = love.math.setRandomSeed
-function random(a, b)
-  if not a then a, b = 0, 1 end
-  if not b then b = 0 end
-  return a + love.math.random() * (b - a)
-end
--- function random_int(n,minimum)
---   local m=minimum or 0
---   return m+floor(random(32767))%(n-m)
--- end
-function random_int(n,minimum)
-  return floor(random(n,minimum))
+function circfill(x, y, radius, c)
+  color(c)
+  love.graphics.circle("fill", x, y, radius)
 end
 
-local cos = function(n)
-  return math.cos(n*2*math.pi)
-end
-local sin = function(n)
-  return math.sin(n*2*math.pi)
-end
-local sqrt = math.sqrt
-local sub = string.sub
-local add = table.insert
-
--- pico 8 colors
 picocolors = {
   {0x1D, 0x2B, 0x53}, -- 1 dark_blue
   {0x7E, 0x25, 0x53}, -- 2 dark_purple
@@ -166,10 +139,6 @@ end
 function Vector:scaled_length()
   return 182*math.sqrt((self.x/182)^2+(self.y/182)^2)
 end
-function scaled_dist(a,b)
-  return (b-a):scaled_length()
-end
-
 function Vector:perpendicular()
   return Vector.new(-self.y,self.x)
 end
@@ -220,12 +189,11 @@ function Vector:draw_circle(radius,c,fill)
   love.graphics.circle(draw_mode, self.x, self.y, radius)
 end
 
-function circfill(x, y, radius, c)
-  color(c)
-  love.graphics.circle("fill", x, y, radius)
-end
-
 setmetatable(Vector,{__call=function(_,...) return Vector.new(...) end})
+
+function vector_distance(a,b)
+  return (b-a):scaled_length()
+end
 
 function cls()
   love.graphics.clear()
@@ -591,7 +559,7 @@ function ship:draw_sprite_rotated(offscreen_pos,angle)
   for index, p in ipairs(projectiles) do
     if p.firing_ship~=self then
       if (p.sector_position and offscreen_pos and (self.sector_position-p.sector_position):scaled_length()<=rows) or
-      scaled_dist(p.screen_position,screen_position)<rows then
+      vector_distance(p.screen_position,screen_position)<rows then
         add(close_projectiles,p)
       end
     end
@@ -954,7 +922,7 @@ function nearest_planet()
   local dist=32767
   for index, p in ipairs(sect.planets) do
     if p.planet_type then
-      local d=scaled_dist(pilot.sector_position,p.sector_position)
+      local d=vector_distance(pilot.sector_position,p.sector_position)
       if d<dist then
         dist=d
         planet=p
@@ -1148,7 +1116,7 @@ function sector:new_planet_along_elipse()
     sdist=32767
     for index, p in ipairs(self.planets) do
       sdist=min(sdist,
-                scaled_dist(Vector(x,y),p.sector_position/33))
+                vector_distance(Vector(x,y),p.sector_position/33))
     end
     planet_nearby=sdist<15
   end

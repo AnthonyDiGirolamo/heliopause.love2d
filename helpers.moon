@@ -20,7 +20,7 @@ random = (a, b) ->
   a + actual_random() * (b - a)
 
 random_int = (n,minimum) ->
-  floor random(n, minimum)
+  math.floor random(n, minimum)
 
 cos = (n) ->
   math.cos(n*2*math.pi)
@@ -42,6 +42,7 @@ ceil = math.ceil
 -- print round(1.4)
 {
   :round
+  :randomseed
   :random
   :random_int
   :cos
