@@ -1,5 +1,11 @@
 -- debug = true
 
+-- local Vector = require("vector")
+
+-- button_positions = {
+--   Vector
+-- }
+
 function stat(args)
   return 0
 end
@@ -112,7 +118,6 @@ indigo      = 13
 pink        = 14
 peach       = 15
 
--- local Vector = require("vector")
 
 local Vector={}
 Vector.__index=Vector
