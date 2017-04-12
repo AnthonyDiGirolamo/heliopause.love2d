@@ -1,3 +1,5 @@
+import color from require "pico_api"
+
 import
   round
   randomseed

@@ -16,9 +16,17 @@ do
   Vector = _obj_0.Vector
 end
 
--- button_positions = {
---   Vector
--- }
+local ControlPad
+do
+  local _obj_0 = require("control_pad")
+  ControlPad = _obj_0.ControlPad
+end
+
+local circfill, cls, color
+do
+  local _obj_0 = require("pico_api")
+  circfill, cls, color = _obj_0.circfill, _obj_0.cls, _obj_0.color
+end
 
 function stat(args)
   return 0
@@ -58,60 +66,52 @@ function rectfill(x1, y1, x2, y2, c)
   love.graphics.rectangle("fill", x1, y1, w, h)
 end
 
-function circfill(x, y, radius, c)
-  color(c)
-  love.graphics.circle("fill", x, y, radius)
-end
+-- function circfill(x, y, radius, c)
+--   color(c)
+--   love.graphics.circle("fill", x, y, radius)
+-- end
 
-picocolors = {
-  {0x1D, 0x2B, 0x53}, -- 1 dark_blue
-  {0x7E, 0x25, 0x53}, -- 2 dark_purple
-  {0x00, 0x87, 0x51}, -- 3 dark_green
-  {0xAB, 0x52, 0x36}, -- 4 brown
-  {0x5F, 0x57, 0x4F}, -- 5 dark_gray
-  {0xC2, 0xC3, 0xC7}, -- 6 light_gray
-  {0xFF, 0xF1, 0xE8}, -- 7 white
-  {0xFF, 0x00, 0x4D}, -- 8 red
-  {0xFF, 0xA3, 0x00}, -- 9 orange
-  {0xFF, 0xEC, 0x27}, -- 10 yellow
-  {0x00, 0xE4, 0x36}, -- 11 green
-  {0x29, 0xAD, 0xFF}, -- 12 blue
-  {0x83, 0x76, 0x9C}, -- 13 indigo
-  {0xFF, 0x77, 0xA8}, -- 14 pink
-  {0xFF, 0xCC, 0xAA}, -- 15 peach
-}
-picocolors[0] = {0,0,0} -- 0 black
+-- picocolors = {
+--   {0x1D, 0x2B, 0x53}, -- 1 dark_blue
+--   {0x7E, 0x25, 0x53}, -- 2 dark_purple
+--   {0x00, 0x87, 0x51}, -- 3 dark_green
+--   {0xAB, 0x52, 0x36}, -- 4 brown
+--   {0x5F, 0x57, 0x4F}, -- 5 dark_gray
+--   {0xC2, 0xC3, 0xC7}, -- 6 light_gray
+--   {0xFF, 0xF1, 0xE8}, -- 7 white
+--   {0xFF, 0x00, 0x4D}, -- 8 red
+--   {0xFF, 0xA3, 0x00}, -- 9 orange
+--   {0xFF, 0xEC, 0x27}, -- 10 yellow
+--   {0x00, 0xE4, 0x36}, -- 11 green
+--   {0x29, 0xAD, 0xFF}, -- 12 blue
+--   {0x83, 0x76, 0x9C}, -- 13 indigo
+--   {0xFF, 0x77, 0xA8}, -- 14 pink
+--   {0xFF, 0xCC, 0xAA}, -- 15 peach
+-- }
+-- picocolors[0] = {0,0,0} -- 0 black
 
-black       = 0
-dark_blue   = 1
-dark_purple = 2
-dark_green  = 3
-brown       = 4
-dark_gray   = 5
-light_gray  = 6
-white       = 7
-red         = 8
-orange      = 9
-yellow      = 10
-green       = 11
-blue        = 12
-indigo      = 13
-pink        = 14
-peach       = 15
+-- black       = 0
+-- dark_blue   = 1
+-- dark_purple = 2
+-- dark_green  = 3
+-- brown       = 4
+-- dark_gray   = 5
+-- light_gray  = 6
+-- white       = 7
+-- red         = 8
+-- orange      = 9
+-- yellow      = 10
+-- green       = 11
+-- blue        = 12
+-- indigo      = 13
+-- pink        = 14
+-- peach       = 15
 
 
 
 
 function vector_distance(a,b)
   return (b-a):scaled_length()
-end
-
-function cls()
-  love.graphics.clear()
-end
-
-function color(c)
-  love.graphics.setColor( unpack(picocolors[c] or {0,0,0}) )
 end
 
 -- love.graphics.setBackgroundColor(255,255,255)
