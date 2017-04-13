@@ -55,6 +55,17 @@ do
         end
         self.hold_time = _accum_0
       end
+      do
+        local _accum_0 = { }
+        local _len_0 = 1
+        local _list_0 = self.screen_positions
+        for _index_0 = 1, #_list_0 do
+          local p = _list_0[_index_0]
+          _accum_0[_len_0] = 0
+          _len_0 = _len_0 + 1
+        end
+        self.hold_frames = _accum_0
+      end
       return self
     end,
     draw = function(self)
@@ -74,8 +85,10 @@ do
         end
         if is_pressed then
           self.hold_time[bi] = self.hold_time[bi] + delta_time
+          self.hold_frames[bi] = self.hold_frames[bi] + 1
         else
           self.hold_time[bi] = 0
+          self.hold_frames[bi] = 0
         end
       end
       return self.hold_time
@@ -84,8 +97,7 @@ do
       return self.hold_time[number + 1] > 0
     end,
     btnp = function(self, number)
-      local ht = self.hold_time[number + 1]
-      return ht > 0 and ht < .04
+      return self.hold_frames[number + 1] == 1
     end
   }
   _base_0.__index = _base_0
@@ -94,6 +106,7 @@ do
       self.screen_width, self.screen_height, self.portrait = screen_width, screen_height, portrait
       self.screen_positions = { }
       self.hold_time = { }
+      self.hold_frames = { }
       return self:set_positions()
     end,
     __base = _base_0,

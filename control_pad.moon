@@ -5,6 +5,7 @@ class ControlPad
   new: (@screen_width, @screen_height, @portrait) =>
     @screen_positions = {}
     @hold_time = {}
+    @hold_frames = {}
     @set_positions!
 
   names: {
@@ -34,6 +35,7 @@ class ControlPad
     }
     @screen_positions = [p\round! for p in *@screen_positions]
     @hold_time = [0 for p in *@screen_positions]
+    @hold_frames = [0 for p in *@screen_positions]
     self
 
   draw: =>
@@ -52,16 +54,17 @@ class ControlPad
           is_pressed = true
       if is_pressed
         @hold_time[bi] += delta_time
+        @hold_frames[bi] += 1
       else
         @hold_time[bi] = 0
+        @hold_frames[bi] = 0
     @hold_time
 
   btn: (number) =>
     @hold_time[number + 1] > 0
 
   btnp: (number) =>
-    ht = @hold_time[number + 1]
-    ht > 0 and ht < .04
+    @hold_frames[number + 1] == 1
 
 {
   :ControlPad
