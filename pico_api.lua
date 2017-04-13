@@ -98,11 +98,21 @@ circfill = function(x, y, radius, c)
   return love.graphics.circle("fill", x, y, radius)
 end
 local rectfill
-rectfill = function(x1, y1, x2, y2, c)
-  color(c)
-  local w = (x2 - x1) + 1
-  local h = (y2 - y1) + 1
-  return love.graphics.rectangle("fill", x1, y1, w, h)
+rectfill = function(ax, ay, bx, by, c)
+  if c then
+    color(c)
+  end
+  if bx < ax then
+    ax, bx = bx, ax
+  end
+  if by < ay then
+    ay, by = by, ay
+  end
+  if ax == bx or ay == by then
+    return love.graphics.line(ax, ay, bx, by)
+  else
+    return love.graphics.rectangle("fill", math.floor(ax), math.floor(ay), math.floor(bx - ax) + 1, math.floor(by - ay) + 1)
+  end
 end
 return {
   rectfill = rectfill,

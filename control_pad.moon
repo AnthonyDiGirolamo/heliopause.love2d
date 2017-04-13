@@ -16,7 +16,7 @@ class ControlPad
     "fire"
   }
 
-  set_positions: (size=100, separation=150) =>
+  set_positions: (size=150, separation=150) =>
     @button_size = size
     @button_separation = separation
     -- portait
@@ -39,7 +39,7 @@ class ControlPad
   draw: =>
     for i, button in ipairs @screen_positions
       color(5)
-      love.graphics.circle "fill",
+      love.graphics.circle "line",
         button.x, button.y,
         @button_size
 

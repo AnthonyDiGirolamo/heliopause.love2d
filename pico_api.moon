@@ -27,30 +27,34 @@ circfill = (x, y, radius, c) ->
   color c
   love.graphics.circle("fill", x, y, radius)
 
--- function rect(x1, y1, x2, y2, c)
+-- function rect(ax, ay, bx, by, c)
 --   color(c)
---   local w = x2-x1
---   local h = x2-x1
---   -- -- print(x1..","..y1.." - "..x2..","..y2.." - "..w..","..h.."\n")
+--   local w = bx-ax
+--   local h = bx-ax
+--   -- -- print(ax..","..ay.." - "..bx..","..by.." - "..w..","..h.."\n")
 --   -- if w==0 and h==0 then
---   --   love.graphics.points(x1, y1)
+--   --   love.graphics.points(ax, ay)
 --   -- else
---     love.graphics.rectangle("line", x1, y1, w, h)
+--     love.graphics.rectangle("line", ax, ay, w, h)
 --   -- end
 -- end
 
-rectfill = (x1, y1, x2, y2, c) ->
-  color c
-  w = (x2 - x1) + 1
-  h = (y2 - y1) + 1
-  -- print(x1..","..y1.." - "..x2..","..y2.." - "..w..","..h.."\n")
-  -- if w==0 and h==0 then
-  --   w,h=1,1
-  --   love.graphics.points(x1, y1)
-  --   love.graphics.points(x2, y2)
-  -- else
-  -- end
-  love.graphics.rectangle("fill", x1, y1, w, h)
+rectfill = (ax, ay, bx, by, c) ->
+  color c if c
+  if bx < ax
+    ax, bx = bx, ax
+  if by < ay
+    ay, by = by, ay
+
+  if ax == bx or ay == by
+    -- rectangle is only one pixel tall or wide
+    love.graphics.line ax, ay, bx, by
+  else
+    love.graphics.rectangle("fill",
+      math.floor(ax),
+      math.floor(ay),
+      math.floor(bx - ax) + 1,
+      math.floor(by - ay) + 1)
 
 {
   :rectfill

@@ -496,6 +496,8 @@ function ship:draw_sprite_rotated(offscreen_pos,angle)
             pixel1.x,pixel1.y,
             pixel2.x,pixel2.y,
             color)
+          -- pixel1:draw_line(pixel2, color)
+
         end
 
       end
@@ -509,11 +511,11 @@ function ship:draw_sprite_rotated(offscreen_pos,angle)
 end
 
 function ship:turn_left()
-  self:rotate(self.turn_rate)
+  self:rotate(-self.turn_rate)
 end
 
 function ship:turn_right()
-  self:rotate(-self.turn_rate)
+  self:rotate(self.turn_rate)
 end
 
 function ship:rotate(signed_degrees)
@@ -543,11 +545,11 @@ function ship:draw()
   if self.accelerating then
     text(format(self.cur_gees).." g",0,14)
   end
-  text((self.angle).." deg", 0,21)
-  text((self.angle_radians).." rad", 0,28)
-  text((self.heading).." heading", 0,35)
-  text((self.velocity_angle).." vel-a", 0,42)
-  text((self.velocity_angle_opposite).." vel-a-o", 0,49)
+  -- text((self.angle).." deg", 0,21)
+  -- text((self.angle_radians).." rad", 0,28)
+  -- text((self.heading).." heading", 0,35)
+  -- text((self.velocity_angle).." vel-a", 0,42)
+  -- text((self.velocity_angle_opposite).." vel-a-o", 0,49)
   self:draw_sprite_rotated()
 end
 

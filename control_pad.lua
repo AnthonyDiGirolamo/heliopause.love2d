@@ -16,7 +16,7 @@ do
     },
     set_positions = function(self, size, separation)
       if size == nil then
-        size = 100
+        size = 150
       end
       if separation == nil then
         separation = 150
@@ -60,7 +60,7 @@ do
     draw = function(self)
       for i, button in ipairs(self.screen_positions) do
         color(5)
-        love.graphics.circle("fill", button.x, button.y, self.button_size)
+        love.graphics.circle("line", button.x, button.y, self.button_size)
       end
     end,
     get_presses = function(self, touches, delta_time)
