@@ -27,12 +27,16 @@ random_int = function(n, minimum)
   return math.floor(random(n, minimum))
 end
 local cos
-cos = function(n)
-  return math.cos(n * 2 * math.pi)
+cos = function(x)
+  return math.cos((x or 0) * math.pi * 2)
 end
 local sin
-sin = function(n)
-  return math.sin(n * 2 * math.pi)
+sin = function(x)
+  return -math.sin((x or 0) * math.pi * 2)
+end
+local atan2
+atan2 = function(x, y)
+  return (0.75 + math.atan2(x, y) / (math.pi * 2)) % 1.0
 end
 local sqrt = math.sqrt
 local sub = string.sub
@@ -50,6 +54,7 @@ return {
   random_int = random_int,
   cos = cos,
   sin = sin,
+  atan2 = atan2,
   sqrt = sqrt,
   sub = sub,
   add = add,

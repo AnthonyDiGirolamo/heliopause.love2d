@@ -22,49 +22,16 @@ do
   ControlPad = _obj_0.ControlPad
 end
 
-local circfill, cls, color
+local rectfill, circfill, cls, color
 do
   local _obj_0 = require("pico_api")
-  circfill, cls, color = _obj_0.circfill, _obj_0.cls, _obj_0.color
+  rectfill, circfill, cls, color = _obj_0.rectfill, _obj_0.circfill, _obj_0.cls, _obj_0.color
 end
 
 function stat(args)
   return 0
 end
-function btn(args)
-  return false
-end
-function btnp(args)
-  -- touches = love.touch.getTouches()
-  -- return #touches>0
-  return false
-end
 
--- function rect(x1, y1, x2, y2, c)
---   color(c)
---   local w = x2-x1
---   local h = x2-x1
---   -- -- print(x1..","..y1.." - "..x2..","..y2.." - "..w..","..h.."\n")
---   -- if w==0 and h==0 then
---   --   love.graphics.points(x1, y1)
---   -- else
---     love.graphics.rectangle("line", x1, y1, w, h)
---   -- end
--- end
-
-function rectfill(x1, y1, x2, y2, c)
-  color(c)
-  local w = x2-x1+1
-  local h = y2-y1+1
-  -- print(x1..","..y1.." - "..x2..","..y2.." - "..w..","..h.."\n")
-  -- if w==0 and h==0 then
-  --   w,h=1,1
-  --   love.graphics.points(x1, y1)
-  --   love.graphics.points(x2, y2)
-  -- else
-  -- end
-  love.graphics.rectangle("fill", x1, y1, w, h)
-end
 
 -- black       = 0
 -- dark_blue   = 1
@@ -93,6 +60,15 @@ local pixel_screen_width, pixel_screen_height = 128, 128
 -- local pixel_screen_width, pixel_screen_height = 256, 256
 local starfield_count = 40 * (pixel_screen_width*pixel_screen_height) / (128*128)
 local screen_center = Vector(floor(pixel_screen_width/2),floor(pixel_screen_height/2))
+local buttons
+
+function btn(number, player)
+  return buttons:btn(number)
+end
+
+function btnp(number, player)
+  return buttons:btnp(number)
+end
 
 -- titlestarv=Vector(3,-7)
 --star_color_index=0
@@ -103,6 +79,10 @@ local screen_center = Vector(floor(pixel_screen_width/2),floor(pixel_screen_heig
 --sect = sector.new()
 
 function love.load(arg)
+  screen_width = love.graphics.getWidth()
+  screen_height = love.graphics.getHeight()
+  buttons = ControlPad(screen_width, screen_height, true)
+
   pixelfont = love.graphics.newFont("PICO-8.ttf", 5)
   -- pixelfont = love.graphics.newFont("Droid Sans Mono.ttf", 12)
   -- debugfont = love.graphics.newFont(32)
@@ -129,14 +109,16 @@ function love.load(arg)
   _init()
 end
 
-local an = 0
+local touches
 function love.update(dt)
   time = time + dt
   screen_width = love.graphics.getWidth()
   screen_height = love.graphics.getHeight()
 
+  touches = love.touch.getTouches()
+  buttons:get_presses(touches, love.timer.getDelta())
+
   _update()
-  -- an = (an + .001) % 1
 end
 
 deg270 = math.pi*1.5
@@ -149,8 +131,6 @@ function love.draw()
   love.graphics.setColor(255, 255, 255, 255)
   love.graphics.setFont(pixelfont)
   _draw()
-
-    -- screen_center:draw_line(screen_center + rotated_vector(an, 16, 0), 7)
 
   love.graphics.setCanvas()
   love.graphics.setBlendMode("alpha", "premultiplied")
@@ -203,6 +183,9 @@ function love.draw()
 
   love.graphics.setBlendMode("alpha")
   love.graphics.setColor(255, 255, 255, 255)
+
+  buttons:draw()
+
   color(7)
   love.graphics.setFont(debugfont)
 
@@ -214,7 +197,12 @@ function love.draw()
     ("screen:  " .. screen_width.." x "..screen_height),
   }
 
-  touches = love.touch.getTouches()
+  for i, is_pressed in ipairs(buttons.hold_time) do
+    if is_pressed > 0 then
+      table.insert(debug_messages, "button "..(i-1).." is pressed for "..is_pressed)
+    end
+  end
+
   if #touches > 0 then
     for i, id in ipairs(touches) do
       local x, y = love.touch.getPosition(id)
@@ -230,8 +218,6 @@ function love.draw()
       deg270)
   end
 
-  -- love.graphics.print("stars: " .. #sect.starfield, 50, 350)
-  -- love.graphics.print("angle: "..an.."\nsin: "..sin(an).."\ncos: "..cos(an).."\ndeg: "..(an*360).."\natan2: "..(rotated_vector(an,1,0):angle()), 50, 400)
 end
 
 
@@ -1955,7 +1941,7 @@ function _update()
     end
 
   else
-    pilot:apply_thrust()
+    -- pilot:apply_thrust()
     -- pilot:turn_left()
 
     local no_orders=not pilot.orders[1]

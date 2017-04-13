@@ -7,6 +7,7 @@ import
   random_int
   cos
   sin
+  atan2
   sqrt
   sub
   add
@@ -17,8 +18,6 @@ import
   floor
   ceil
   from require "helpers"
-
-twopi = math.pi*2
 
 class Vector
   new: (x, y) =>
@@ -65,7 +64,7 @@ class Vector
     round(v.x) == @x and round(v.y) == @y
 
   angle: =>
-    a = math.atan2(@y,@x) / twopi
+    a = atan2(@y,@x)
     if a < 0
       a = (.5 - -1*a) + .5
     a

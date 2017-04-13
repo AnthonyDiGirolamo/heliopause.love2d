@@ -27,7 +27,33 @@ circfill = (x, y, radius, c) ->
   color c
   love.graphics.circle("fill", x, y, radius)
 
+-- function rect(x1, y1, x2, y2, c)
+--   color(c)
+--   local w = x2-x1
+--   local h = x2-x1
+--   -- -- print(x1..","..y1.." - "..x2..","..y2.." - "..w..","..h.."\n")
+--   -- if w==0 and h==0 then
+--   --   love.graphics.points(x1, y1)
+--   -- else
+--     love.graphics.rectangle("line", x1, y1, w, h)
+--   -- end
+-- end
+
+rectfill = (x1, y1, x2, y2, c) ->
+  color c
+  w = x2 - x1 + 1
+  h = y2 - y1 + 1
+  -- print(x1..","..y1.." - "..x2..","..y2.." - "..w..","..h.."\n")
+  -- if w==0 and h==0 then
+  --   w,h=1,1
+  --   love.graphics.points(x1, y1)
+  --   love.graphics.points(x2, y2)
+  -- else
+  -- end
+  love.graphics.rectangle("fill", x1, y1, w, h)
+
 {
+  :rectfill
   :circfill
   :cls
   :color

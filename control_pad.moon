@@ -3,6 +3,8 @@ import color from require "pico_api"
 
 class ControlPad
   new: (@screen_width, @screen_height, @portrait) =>
+    @screen_positions = {}
+    @hold_time = {}
     @set_positions!
 
   names: {
@@ -14,16 +16,14 @@ class ControlPad
     "fire"
   }
 
-  set_positions: (size=50, separation=100) =>
+  set_positions: (size=100, separation=150) =>
     @button_size = size
     @button_separation = separation
-
     -- portait
-    dpad = Vector @screen_height + (2 * separation),
-             @screen_height - separation
-    ab = Vector @screen_height + (2 * separation),
-           separation
-
+    dpad = Vector @screen_height + 2 * separation,
+             @screen_height - 2 * separation
+    ab = Vector @screen_height + 2 * separation,
+           2 * separation
     @screen_positions = {
       dpad + Vector(0, -separation) -- left
       dpad + Vector(0, separation)  -- right
@@ -32,52 +32,36 @@ class ControlPad
       ab + Vector(0, -separation)   -- pause
       ab + Vector(0, separation)    -- fire
     }
+    @screen_positions = [p\round! for p in *@screen_positions]
+    @hold_time = [0 for p in *@screen_positions]
+    self
 
   draw: =>
-    for button in @screen_positions
+    for i, button in ipairs @screen_positions
       color(5)
-      love.graphics.circle("fill", button.x, button.y, @button_size)
+      love.graphics.circle "fill",
+        button.x, button.y,
+        @button_size
 
+  get_presses: (touches, delta_time) =>
+    for bi, current_hold_time in ipairs @hold_time
+      is_pressed = false
+      for ti, touch in ipairs touches
+        x, y = love.touch.getPosition(touch)
+        if (Vector(x,y) - @screen_positions[bi])\length! < @button_size
+          is_pressed = true
+      if is_pressed
+        @hold_time[bi] += delta_time
+      else
+        @hold_time[bi] = 0
+    @hold_time
 
+  btn: (number) =>
+    @hold_time[number + 1] > 0
 
-
--- stat = (args) ->
---   0
---
--- btn = (args) ->
---   false
---
--- btnp = (args) ->
---   -- touches = love.touch.getTouches()
---   -- return #touches>0
---   false
---
--- -- function rect(x1, y1, x2, y2, c)
--- --   color(c)
--- --   local w = x2-x1
--- --   local h = x2-x1
--- --   -- -- print(x1..","..y1.." - "..x2..","..y2.." - "..w..","..h.."\n")
--- --   -- if w==0 and h==0 then
--- --   --   love.graphics.points(x1, y1)
--- --   -- else
--- --     love.graphics.rectangle("line", x1, y1, w, h)
--- --   -- end
--- -- end
---
--- function rectfill(x1, y1, x2, y2, c)
---   color(c)
---   local w = x2-x1+1
---   local h = y2-y1+1
---   -- print(x1..","..y1.." - "..x2..","..y2.." - "..w..","..h.."\n")
---   -- if w==0 and h==0 then
---   --   w,h=1,1
---   --   love.graphics.points(x1, y1)
---   --   love.graphics.points(x2, y2)
---   -- else
---   -- end
---   love.graphics.rectangle("fill", x1, y1, w, h)
--- end
---
+  btnp: (number) =>
+    ht = @hold_time[number + 1]
+    ht > 0 and ht < .04
 
 {
   :ControlPad

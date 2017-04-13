@@ -22,11 +22,14 @@ random = (a, b) ->
 random_int = (n,minimum) ->
   math.floor random(n, minimum)
 
-cos = (n) ->
-  math.cos(n*2*math.pi)
+cos = (x) ->
+  math.cos((x or 0)*math.pi*2)
 
-sin = (n) ->
-  math.sin(n*2*math.pi)
+sin = (x) ->
+  -math.sin((x or 0)*math.pi*2)
+
+atan2 = (x, y) ->
+  (0.75 + math.atan2(x,y) / (math.pi * 2)) % 1.0
 
 sqrt = math.sqrt
 sub = string.sub
@@ -45,6 +48,7 @@ ceil = math.ceil
   :random_int
   :cos
   :sin
+  :atan2
   :sqrt
   :sub
   :add

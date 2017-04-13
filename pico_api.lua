@@ -97,7 +97,15 @@ circfill = function(x, y, radius, c)
   color(c)
   return love.graphics.circle("fill", x, y, radius)
 end
+local rectfill
+rectfill = function(x1, y1, x2, y2, c)
+  color(c)
+  local w = x2 - x1 + 1
+  local h = y2 - y1 + 1
+  return love.graphics.rectangle("fill", x1, y1, w, h)
+end
 return {
+  rectfill = rectfill,
   circfill = circfill,
   cls = cls,
   color = color
