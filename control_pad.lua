@@ -7,8 +7,8 @@ do
   local _class_0
   local _base_0 = {
     names = {
-      "left",
       "right",
+      "left",
       "up",
       "down",
       "pause",
@@ -26,8 +26,8 @@ do
       local dpad = Vector(self.screen_height + 2 * separation, self.screen_height - 2 * separation)
       local ab = Vector(self.screen_height + 2 * separation, 2 * separation)
       self.screen_positions = {
-        dpad + Vector(0, -separation),
         dpad + Vector(0, separation),
+        dpad + Vector(0, -separation),
         dpad + Vector(-separation, 0),
         dpad + Vector(separation, 0),
         ab + Vector(0, -separation),

@@ -56,7 +56,8 @@ end
 
 local time = 0
 local screen_width, screen_height = 1366, 768
-local pixel_screen_width, pixel_screen_height = 128, 128
+-- local pixel_screen_width, pixel_screen_height = 128, 128
+local pixel_screen_width, pixel_screen_height = 160, 160
 -- local pixel_screen_width, pixel_screen_height = 256, 256
 local starfield_count = 40 * (pixel_screen_width*pixel_screen_height) / (128*128)
 local screen_center = Vector(floor(pixel_screen_width/2),floor(pixel_screen_height/2))
@@ -511,11 +512,11 @@ function ship:draw_sprite_rotated(offscreen_pos,angle)
 end
 
 function ship:turn_left()
-  self:rotate(-self.turn_rate)
+  self:rotate(self.turn_rate)
 end
 
 function ship:turn_right()
-  self:rotate(self.turn_rate)
+  self:rotate(-self.turn_rate)
 end
 
 function ship:rotate(signed_degrees)
@@ -572,9 +573,9 @@ function ship:is_visible(player_ship_pos)
   local size=round(self.sprite_rows/2)
   local screen_position=(self.sector_position-player_ship_pos+screen_center):round()
   self.screen_position=screen_position
-  return screen_position.x<128+size and
+  return screen_position.x<pixel_screen_width+size and
     screen_position.x>0-size and
-    screen_position.y<128+size and
+    screen_position.y<pixel_screen_height+size and
     screen_position.y>0-size
 end
 
@@ -944,9 +945,9 @@ end
 function stellar_object_is_visible(obj,ship_pos)
   obj.screen_position=obj.sector_position-ship_pos+screen_center
   return
-    obj.screen_position.x<128+obj.radius and
+    obj.screen_position.x<pixel_screen_width+obj.radius and
     obj.screen_position.x>0-obj.radius and
-    obj.screen_position.y<128+obj.radius and
+    obj.screen_position.y<pixel_screen_width+obj.radius and
     obj.screen_position.y>0-obj.radius
 end
 
@@ -1039,7 +1040,7 @@ end
 function is_offscreen(p,m)
   local margin=m or 0
   local mincoord=0-margin
-  local maxcoord=128+margin
+  local maxcoord=pixel_screen_width+margin
   local x,y=p.screen_position.x,p.screen_position.y
   local duration_up=p.duration<0
   if p.deltav then
@@ -1457,6 +1458,8 @@ end
 function _init()
   grads3=nsplit"n1,1,0,|n-1,1,0,|n1,-1,0,|n-1,-1,0,|n1,0,1,|n-1,0,1,|n1,0,-1,|n-1,0,-1,|n0,1,1,|n0,-1,1,|n0,1,-1,|n0,-1,-1,|"
   mmap_sizes=split"n24,48,128,0,"
+  mmap_sizes = {floor(pixel_screen_width*.375), pixel_screen_width, 0}
+  mmap_sizes[0] = floor(pixel_screen_width*.1875)
   music_tracks=split"n13,0,-1,"
   mousemodes=split"agamepad,two button mouse,stylus (pocketchip),"
   framecount,secondcount,mousemode,mmap_size_index,music_track=0,0,0,0,0
@@ -1496,7 +1499,7 @@ function _init()
   particles={}
   pilot=ship.new()
   pilot.npc = true
-  pilot:buildship(nil,4)
+  pilot:buildship(nil,2)
   load_sector()
   setup_mmap()
   -- music(13)
@@ -1519,7 +1522,7 @@ function setup_mmap()
   mmap_size=mmap_sizes[mmap_size_index]
   if mmap_size>0 then
     mmap_size_halved=mmap_size/2
-    mmap_offset=Vector(126-mmap_size_halved,mmap_size_halved+1)
+    mmap_offset=Vector(pixel_screen_width-2-mmap_size_halved,mmap_size_halved+1)
   end
 end
 
@@ -1548,7 +1551,7 @@ function draw_mmap()
   if mmap_size>0 then
     if mmap_size<100 then
       text_height = text_height + 4
-      rectfill(125-mmap_size,0,127,mmap_size+2,1)
+      rectfill(pixel_screen_width-3-mmap_size,0,pixel_screen_width-1,mmap_size+2,1)
     else
       text_height=0
     end
@@ -1580,8 +1583,8 @@ function draw_mmap()
     end
 
   end
-  text("s "..#npcships-pirates,112,text_height)
-  text("s "..pirates,112,text_height+7,8)
+  text("s "..#npcships-pirates,pixel_screen_width-16,text_height)
+  text("s "..pirates,pixel_screen_width-16,text_height+7,8)
 end
 
 function text(text,x,y,textcolor,outline)
@@ -1611,7 +1614,7 @@ end
 
 function note_draw()
   if note_display_time>0 then
-    text(note_text,0,121)
+    text(note_text,0,pixel_screen_height-7)
     if framecount>=29 then
       note_display_time = note_display_time - 1
     end
@@ -1735,7 +1738,7 @@ function main_menu()
          end,
 
          function()
-           menu("x6fba|aback,starfield,minimap size,mouse+,|",
+           menu("x6fba|aback,starfield,minimap size,mouse,|",
                 {
                   main_menu,
 
@@ -1772,7 +1775,7 @@ function main_menu()
                   end,
 
                   function()
-                    menu("xc698|a—control mode,back,music,|",
+                    menu("xc698|acontrol mode,back,music,|",
                          {
                            function()
                              mousemode = mousemode + 1
@@ -2062,19 +2065,20 @@ function render_game_screen()
       if not targeted_ship:is_visible(pilot.sector_position) then
         local distance=""..floor((targeted_ship.screen_position-player_screen_position):scaled_length())
         local color,shadow=targeted_ship:targeted_color()
-        local hr=floor(targeted_ship.sprite_rows*.5)
+        local hull_radius=floor(targeted_ship.sprite_rows*.5)
         local d=rotated_vector((targeted_ship.screen_position-player_screen_position):angle())
-        last_offscreen_pos=d*(60-hr)+screen_center
+        local draw_dist_from_center = floor(pixel_screen_width/2-8)
+        last_offscreen_pos=d*(draw_dist_from_center-hull_radius)+screen_center
         local p2=last_offscreen_pos:clone():add(Vector(-4*(#distance/2)))
         targeted_ship:draw_sprite_rotated(last_offscreen_pos)
-        if p2.y>63 then
-          p2:add(Vector(1,-12-hr))
+        if p2.y>floor(pixel_screen_width/2-1) then
+          p2:add(Vector(1,-12-hull_radius))
         else
-          p2:add(Vector(1,7+hr))
+          p2:add(Vector(1,7+hull_radius))
         end
         text(distance,round(p2.x),round(p2.y),color)
       end
-      text(targeted_ship.name..targeted_ship:hp_string(),0,114,targeted_ship:hp_color())
+      text(targeted_ship.name..targeted_ship:hp_string(),0,pixel_screen_height-14,targeted_ship:hp_color())
     end
   end
 

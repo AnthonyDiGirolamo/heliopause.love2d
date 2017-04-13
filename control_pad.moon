@@ -8,8 +8,8 @@ class ControlPad
     @set_positions!
 
   names: {
-    "left"
     "right"
+    "left"
     "up"
     "down"
     "pause"
@@ -25,8 +25,8 @@ class ControlPad
     ab = Vector @screen_height + 2 * separation,
            2 * separation
     @screen_positions = {
-      dpad + Vector(0, -separation) -- left
       dpad + Vector(0, separation)  -- right
+      dpad + Vector(0, -separation) -- left
       dpad + Vector(-separation, 0) -- up
       dpad + Vector(separation, 0)  -- down
       ab + Vector(0, -separation)   -- pause
