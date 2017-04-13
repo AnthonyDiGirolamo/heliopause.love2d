@@ -543,6 +543,11 @@ function ship:draw()
   if self.accelerating then
     text(format(self.cur_gees).." g",0,14)
   end
+  text((self.angle).." deg", 0,21)
+  text((self.angle_radians).." rad", 0,28)
+  text((self.heading).." heading", 0,35)
+  text((self.velocity_angle).." vel-a", 0,42)
+  text((self.velocity_angle_opposite).." vel-a-o", 0,49)
   self:draw_sprite_rotated()
 end
 
@@ -1489,7 +1494,7 @@ function _init()
   particles={}
   pilot=ship.new()
   pilot.npc = true
-  pilot:buildship(nil,1)
+  pilot:buildship(nil,4)
   load_sector()
   setup_mmap()
   -- music(13)

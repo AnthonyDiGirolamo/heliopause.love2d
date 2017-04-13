@@ -41,8 +41,8 @@ circfill = (x, y, radius, c) ->
 
 rectfill = (x1, y1, x2, y2, c) ->
   color c
-  w = x2 - x1 + 1
-  h = y2 - y1 + 1
+  w = (x2 - x1) + 1
+  h = (y2 - y1) + 1
   -- print(x1..","..y1.." - "..x2..","..y2.." - "..w..","..h.."\n")
   -- if w==0 and h==0 then
   --   w,h=1,1

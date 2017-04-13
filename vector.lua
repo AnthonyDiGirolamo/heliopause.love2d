@@ -49,11 +49,7 @@ do
       return round(v.x) == self.x and round(v.y) == self.y
     end,
     angle = function(self)
-      local a = atan2(self.y, self.x)
-      if a < 0 then
-        a = (.5 - -1 * a) + .5
-      end
-      return a
+      return atan2(self.x, self.y)
     end,
     length = function(self)
       return math.sqrt(self.x ^ 2 + self.y ^ 2)
@@ -73,8 +69,10 @@ do
     rotate = function(self, phi)
       local c = cos(phi)
       local s = sin(phi)
-      self.x = c * self.x - s * self.y
-      self.y = s * self.x + c * self.y
+      local x = self.x
+      local y = self.y
+      self.x = (c * x) - (s * y)
+      self.y = (s * x) + (c * y)
       return self
     end,
     draw_point = function(self, c)
@@ -88,7 +86,7 @@ do
       b:round()
       color(c)
       if a == b then
-        return love.graphics.points(a.x, a.y)
+        return love.graphics.points(a.x, a.y, b.x, b.y)
       else
         return love.graphics.line(a.x, a.y, b.x, b.y)
       end

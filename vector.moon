@@ -64,10 +64,11 @@ class Vector
     round(v.x) == @x and round(v.y) == @y
 
   angle: =>
-    a = atan2(@y,@x)
-    if a < 0
-      a = (.5 - -1*a) + .5
-    a
+    -- a = atan2(@y,@x)
+    -- if a < 0
+    --   a = (.5 - -1*a) + .5
+    -- a
+    atan2(@x,@y)
 
   length: =>
     math.sqrt(@x^2 + @y^2)
@@ -87,8 +88,10 @@ class Vector
   rotate: (phi) =>
     c = cos phi
     s = sin phi
-    @x = c * @x - s * @y
-    @y = s * @x + c * @y
+    x = @x
+    y = @y
+    @x = (c * x) - (s * y)
+    @y = (s * x) + (c * y)
     self
 
   draw_point: (c) =>
@@ -102,7 +105,8 @@ class Vector
     b\round!
     color c
     if a == b
-      love.graphics.points a.x, a.y
+      love.graphics.points a.x, a.y,
+        b.x, b.y
     else
       love.graphics.line a.x, a.y,
         b.x, b.y
