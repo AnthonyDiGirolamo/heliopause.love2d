@@ -1,5 +1,5 @@
 import Vector from require "vector"
-import color from require "pico_api"
+import color from require "helpers"
 
 class ControlPad
   new: (@screen_width, @screen_height, @portrait) =>

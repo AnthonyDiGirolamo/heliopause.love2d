@@ -2,11 +2,10 @@
 local shine = require("shine")
 local lume = require("lume")
 
--- load vector.moon
-local round, randomseed, random, random_int, cos, sin, sqrt, sub, add, del, abs, min, max, floor, ceil
+local round, randomseed, random, random_int, cos, sin, sqrt, sub, add, del, abs, min, max, floor, ceil, rectfill, circfill, cls, color
 do
   local _obj_0 = require("helpers")
-  round, randomseed, random, random_int, cos, sin, sqrt, sub, add, del, abs, min, max, floor, ceil = _obj_0.round, _obj_0.randomseed, _obj_0.random, _obj_0.random_int, _obj_0.cos, _obj_0.sin, _obj_0.sqrt, _obj_0.sub, _obj_0.add, _obj_0.del, _obj_0.abs, _obj_0.min, _obj_0.max, _obj_0.floor, _obj_0.ceil
+  rectfill, circfill, cls, color, round, randomseed, random, random_int, cos, sin, sqrt, sub, add, del, abs, min, max, floor, ceil = _obj_0.rectfill, _obj_0.circfill, _obj_0.cls, _obj_0.color, _obj_0.round, _obj_0.randomseed, _obj_0.random, _obj_0.random_int, _obj_0.cos, _obj_0.sin, _obj_0.sqrt, _obj_0.sub, _obj_0.add, _obj_0.del, _obj_0.abs, _obj_0.min, _obj_0.max, _obj_0.floor, _obj_0.ceil
 end
 
 -- load vector.moon
@@ -20,12 +19,6 @@ local ControlPad
 do
   local _obj_0 = require("control_pad")
   ControlPad = _obj_0.ControlPad
-end
-
-local rectfill, circfill, cls, color
-do
-  local _obj_0 = require("pico_api")
-  rectfill, circfill, cls, color = _obj_0.rectfill, _obj_0.circfill, _obj_0.cls, _obj_0.color
 end
 
 function stat(args)

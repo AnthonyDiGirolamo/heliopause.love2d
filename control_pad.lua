@@ -1,7 +1,7 @@
 local Vector
 Vector = require("vector").Vector
 local color
-color = require("pico_api").color
+color = require("helpers").color
 local ControlPad
 do
   local _class_0

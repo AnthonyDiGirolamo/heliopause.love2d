@@ -1,9 +1,7 @@
-local color
-color = require("pico_api").color
-local round, randomseed, random, random_int, cos, sin, atan2, sqrt, sub, add, del, abs, min, max, floor, ceil
+local color, round, randomseed, random, random_int, cos, sin, atan2, sqrt, sub, add, del, abs, min, max, floor, ceil
 do
   local _obj_0 = require("helpers")
-  round, randomseed, random, random_int, cos, sin, atan2, sqrt, sub, add, del, abs, min, max, floor, ceil = _obj_0.round, _obj_0.randomseed, _obj_0.random, _obj_0.random_int, _obj_0.cos, _obj_0.sin, _obj_0.atan2, _obj_0.sqrt, _obj_0.sub, _obj_0.add, _obj_0.del, _obj_0.abs, _obj_0.min, _obj_0.max, _obj_0.floor, _obj_0.ceil
+  color, round, randomseed, random, random_int, cos, sin, atan2, sqrt, sub, add, del, abs, min, max, floor, ceil = _obj_0.color, _obj_0.round, _obj_0.randomseed, _obj_0.random, _obj_0.random_int, _obj_0.cos, _obj_0.sin, _obj_0.atan2, _obj_0.sqrt, _obj_0.sub, _obj_0.add, _obj_0.del, _obj_0.abs, _obj_0.min, _obj_0.max, _obj_0.floor, _obj_0.ceil
 end
 local Vector
 do
