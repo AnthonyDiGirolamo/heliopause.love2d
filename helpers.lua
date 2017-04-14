@@ -163,7 +163,12 @@ rectfill = function(ax, ay, bx, by, c)
     return love.graphics.rectangle("fill", math.floor(ax), math.floor(ay), math.floor(bx - ax) + 1, math.floor(by - ay) + 1)
   end
 end
+local sset
+sset = function(x, y)
+  return love.graphics.points(x, y)
+end
 return {
+  sset = sset,
   rectfill = rectfill,
   circfill = circfill,
   cls = cls,

@@ -2,10 +2,35 @@
 local shine = require("shine")
 local lume = require("lume")
 
-local round, randomseed, random, random_int, cos, sin, sqrt, sub, add, del, abs, min, max, floor, ceil, rectfill, circfill, cls, color
+function band(x, y)
+	return bit.band(x*0x10000, y*0x10000)/0x10000
+end
+
+function bor(x, y)
+	return bit.bor(x*0x10000, y*0x10000)/0x10000
+end
+
+function bxor(x, y)
+	return bit.bxor(x*0x10000, y*0x10000)/0x10000
+end
+
+function bnot(x)
+	return bit.bnot(x*0x10000)/0x10000
+end
+
+function shl(x, y)
+	return bit.lshift(x*0x10000, y)/0x10000
+end
+
+function shr(x, y)
+	return bit.arshift(x*0x10000, y)/0x10000
+end
+
+
+local round, randomseed, random, random_int, cos, sin, sqrt, sub, add, del, abs, min, max, floor, ceil, rectfill, circfill, cls, color, sset
 do
   local _obj_0 = require("helpers")
-  rectfill, circfill, cls, color, round, randomseed, random, random_int, cos, sin, sqrt, sub, add, del, abs, min, max, floor, ceil = _obj_0.rectfill, _obj_0.circfill, _obj_0.cls, _obj_0.color, _obj_0.round, _obj_0.randomseed, _obj_0.random, _obj_0.random_int, _obj_0.cos, _obj_0.sin, _obj_0.sqrt, _obj_0.sub, _obj_0.add, _obj_0.del, _obj_0.abs, _obj_0.min, _obj_0.max, _obj_0.floor, _obj_0.ceil
+  rectfill, circfill, cls, color, round, randomseed, random, random_int, cos, sin, sqrt, sub, add, del, abs, min, max, floor, ceil, sset = _obj_0.rectfill, _obj_0.circfill, _obj_0.cls, _obj_0.color, _obj_0.round, _obj_0.randomseed, _obj_0.random, _obj_0.random_int, _obj_0.cos, _obj_0.sin, _obj_0.sqrt, _obj_0.sub, _obj_0.add, _obj_0.del, _obj_0.abs, _obj_0.min, _obj_0.max, _obj_0.floor, _obj_0.ceil, _obj_0.sset
 end
 
 -- load vector.moon
@@ -86,9 +111,9 @@ function love.load(arg)
   love.graphics.setLineStyle("rough")
   -- love.graphics.setLineStyle("smooth")
 
-  canvas = love.graphics.newCanvas(pixel_screen_width, pixel_screen_height)
-  canvas:setFilter("nearest", "nearest")
-  -- canvas:setFilter("linear", "linear", 1)
+  game_screen_canvas = love.graphics.newCanvas(pixel_screen_width, pixel_screen_height)
+  game_screen_canvas:setFilter("nearest", "nearest")
+  -- game_screen_canvas:setFilter("linear", "linear", 1)
 
   -- local grain = shine.filmgrain()
   -- grain.opacity = 0.2
@@ -115,15 +140,26 @@ function love.update(dt)
   _update()
 end
 
-deg270 = math.pi*1.5
+local deg270 = math.pi*1.5
+local debug_messages
+
 
 function love.draw()
 
-  love.graphics.setCanvas(canvas)
+  love.graphics.setCanvas(game_screen_canvas)
   love.graphics.clear()
   love.graphics.setBlendMode("alpha")
   love.graphics.setColor(255, 255, 255, 255)
   love.graphics.setFont(pixelfont)
+
+  debug_messages = {
+    ("FPS:     " .. love.timer.getFPS()),
+    ("dt:      " .. love.timer.getDelta()),
+    ("time:    " .. time),
+    ("os.time: " .. os.time()),
+    ("screen:  " .. screen_width.." x "..screen_height),
+  }
+
   _draw()
 
   love.graphics.setCanvas()
@@ -134,7 +170,7 @@ function love.draw()
 
   -- top portait
   love.graphics.draw(
-    canvas,
+    game_screen_canvas,
     0,
     screen_height,
     deg270,
@@ -148,7 +184,7 @@ function love.draw()
 
   -- -- center landscape
   -- love.graphics.draw(
-  --   canvas,
+  --   game_screen_canvas,
   --   (screen_width-screen_height)/2, -- x
   --   0, -- y
   --   0, -- radians
@@ -182,14 +218,6 @@ function love.draw()
 
   color(7)
   love.graphics.setFont(debugfont)
-
-  local debug_messages = {
-    ("FPS:     " .. love.timer.getFPS()),
-    ("dt:      " .. love.timer.getDelta()),
-    ("time:    " .. time),
-    ("os.time: " .. os.time()),
-    ("screen:  " .. screen_width.." x "..screen_height),
-  }
 
   for i, is_pressed in ipairs(buttons.hold_time) do
     if is_pressed > 0 then
@@ -800,13 +828,13 @@ function land_at_nearest_planet()
   local planet,dist=nearest_planet()
   if dist<planet.radius*1.4 then
     if pilot.velocity<.5 then
-      sect:reset_planet_visibility()
+      -- sect:reset_planet_visibility()
       landed_front_rendered=false
       landed_back_rendered=false
       landed_planet=planet
       landed=true
       landed_menu()
-      draw_rect(128,128,0)
+      -- draw_rect(128,128,0)
     else
       note_add("moving too fast to land")
     end
@@ -817,7 +845,7 @@ function land_at_nearest_planet()
 end
 
 function takeoff()
-  sect:reset_planet_visibility()
+  -- sect:reset_planet_visibility()
   pilot:set_position_near_object(landed_planet)
   landed=false
   return false
@@ -1148,11 +1176,7 @@ function thrustexhaust:draw(shipvel)
 end
 
 function draw_rect(w,h,c)
-  for x=0,w-1 do
-    for y=0,h-1 do
-      sset(x,y,c)
-    end
-  end
+  rectfill(0,0,w,h,c)
 end
 
 function draw_sprite_circle(xc,yc,radius,filled,c)
@@ -1160,6 +1184,7 @@ function draw_sprite_circle(xc,yc,radius,filled,c)
   local fx,fy=0,0
   local x,y=-radius,0
   local err=2-2*radius
+  color(c)
   while(x<0) do
     xvalues[1+x*-1]=y
 
@@ -1167,12 +1192,12 @@ function draw_sprite_circle(xc,yc,radius,filled,c)
       fx,fy=x,y
     end
     for i=x,fx do
-      sset(xc-i,yc+y,c)
-      sset(xc+i,yc-y,c)
+      sset(xc-i,yc+y)
+      sset(xc+i,yc-y)
     end
     for i=fy,y do
-      sset(xc-i,yc-x,c)
-      sset(xc+i,yc+x,c)
+      sset(xc-i,yc-x)
+      sset(xc+i,yc+x)
     end
 
     radius=err
@@ -1261,8 +1286,11 @@ planet.__index=planet
 function planet.new(x,y,phase,r)
   local planet_type=planet_types[random_int(#planet_types)+1]
 
-  local radius=r or random_int(65,planet_type.min_size)
+  local radius=r or random_int(130,planet_type.min_size)
+  local planet_canvas = love.graphics.newCanvas(radius*2+1, radius*2+1)
+  planet_canvas:setFilter("nearest", "nearest")
   return setmetatable({
+      planet_canvas=planet_canvas,
       screen_position=Vector(),
       radius=radius,
       sector_position=Vector(x,y),
@@ -1280,72 +1308,97 @@ end
 
 function planet:draw(ship_pos)
   if stellar_object_is_visible(self,ship_pos) then
-    self.screen_position:draw_circle(
-      self.radius,
-      self.color,true)
-    -- self:render_planet()
+    -- self.screen_position:draw_circle(
+    --   self.radius,
+    --   self.color,true)
+
+    self:render_planet()
+
     -- sspr(
     --   0,0,self.bottom_right_coord,self.bottom_right_coord,
     --   self.screen_position.x-self.radius,
     --   self.screen_position.y-self.radius)
+
+    love.graphics.draw(
+      self.planet_canvas,
+      self.screen_position.x-self.radius,
+      self.screen_position.y-self.radius
+      -- deg270,
+      -- screen_height/pixel_screen_height, -- scale x
+      -- screen_height/pixel_screen_height -- scale y
+      -- 0, -- Origin offset (x-axis).
+      -- 0, -- Origin offset (y-axis).
+      -- 0, -- Shearing factor (x-axis).
+      -- 0 -- Shearing factor (y-axis).
+    )
+
   end
 end
 
 function planet:render_planet(fullmap,renderback)
-  local s=self
-  local radius=s.radius-1
+  local radius=self.radius-1
   if fullmap then radius=47 end
 
-  if not s.rendered_circle then
-    s.width=s.radius*2
-    s.height=s.radius*2
-    s.x=0
-    s.yfromzero=0
-    s.y=radius-s.yfromzero
-    s.phi=0
-    sect:reset_planet_visibility()
-    pal()
-    palt(0,false)
-    palt(s.planet_type.transparent_color,true)
+  love.graphics.setCanvas(self.planet_canvas)
+  love.graphics.setBlendMode("alpha")
+  love.graphics.setColor(255, 255, 255, 255)
+
+  if not self.rendered_circle then
+    self.width=self.radius*2
+    self.height=self.radius*2
+    self.x=0
+    self.yfromzero=0
+    self.y=radius-self.yfromzero
+    self.phi=0
+    -- sect:reset_planet_visibility()
+    -- pal()
+    -- palt(0,false)
+    -- palt(self.planet_type.transparent_color,true)
+    love.graphics.clear()
     if fullmap then
-      s.width,s.height=114,96
-      draw_rect(s.width,s.height,0)
+      self.width,self.height=114,96
     else
-      draw_rect(s.width,s.height,s.planet_type.transparent_color)
-      s.xvalues=draw_sprite_circle(radius,radius,radius,true,0)
-      draw_sprite_circle(radius,radius,radius,false,s.planet_type.mmap_color)
+      self.xvalues=draw_sprite_circle(radius,radius,radius,true,0)
+      draw_sprite_circle(radius,radius,radius,false,self.planet_type.mmap_color)
     end
-    s.rendered_circle=true
+    self.rendered_circle=true
   end
 
-  if (not s.rendered_terrain) and s.rendered_circle then
+  local m = ""
+  for i, x in ipairs(self.xvalues) do
+    m = m..x..", "
+  end
+
+  table.insert(debug_messages, m)
+
+  if (not self.rendered_terrain) and self.rendered_circle then
 
     local theta_start,theta_end=0,.5
-    local theta_increment=theta_end/s.width
+    local theta_increment=theta_end/self.width
     if fullmap and renderback then
       theta_start=.5
       theta_end=1
     end
 
-    if s.phi>.25 then
-      s.rendered_terrain=true
+    if self.phi>.25 then
+      self.rendered_terrain=true
     else
 
-      local partialshadow=s.planet_type.full_shadow~=1
-      local phase_values,phase={},s.phase
+      local partialshadow=self.planet_type.full_shadow~=1
+      local phase_values,phase={},self.phase
 
       local x,doublex,x1,x2,i,c1,c2
-      local y=radius-s.y
+      local y=radius-self.y
       local xvalueindex=abs(y)+1
-      if xvalueindex<=#s.xvalues then
+      if xvalueindex<=#self.xvalues then
         x=floor(sqrt(radius*radius-y*y))
         doublex=2*x
         if phase<.5 then
-          x1=-s.xvalues[xvalueindex]
+          x1=-self.xvalues[xvalueindex]
           x2=floor(doublex-2*phase*doublex-x)
         else
           x1=floor(x-2*phase*doublex+doublex)
-          x2=s.xvalues[xvalueindex]
+          x2=self.xvalues[xvalueindex]
         end
         for i=x1,x2 do
           if partialshadow
@@ -1360,52 +1413,62 @@ function planet:render_planet(fullmap,renderback)
 
       for theta=theta_start,theta_end-theta_increment,theta_increment do
 
-        local phasevalue=phase_values[s.x]
+        local phasevalue=phase_values[self.x]
         local c=0
 
-        if (fullmap or phasevalue~=0) and sget(s.x,s.y)~=s.planet_type.transparent_color then
-          local freq=s.planet_type.noise_zoom
+        -- if fullmap or phasevalue==1 then
+        if fullmap or
+          phasevalue ~= 0
+        then
+          -- and sget(self.x,self.y)~=self.planet_type.transparent_color then
+          local freq=self.planet_type.noise_zoom
           local max_amp=0
           local amp=1
           local value=0
-          for n=1,s.planet_type.noise_octaves do
+          for n=1,self.planet_type.noise_octaves do
+            -- value=value+love.math.noise(
             value=value+simplex3d(
-              s.noisedx+freq*cos(s.phi)*cos(theta),
-              s.noisedy+freq*cos(s.phi)*sin(theta),
-              s.noisedz+freq*sin(s.phi)*s.noise_factor_vert)
+              self.noisedx+freq*cos(self.phi)*cos(theta),
+              self.noisedy+freq*cos(self.phi)*sin(theta),
+              self.noisedz+freq*sin(self.phi)*self.noise_factor_vert)
             max_amp = max_amp + amp
-            amp = amp * s.planet_type.noise_persistance
+            amp = amp * self.planet_type.noise_persistance
             freq = freq * 2
           end
           value = value / max_amp
           if value>1 then value=1 end
           if value<-1 then value=-1 end
           value = value + 1
-          value = value * (#s.planet_type.color_map-1)/2
+          value = value * (#self.planet_type.color_map-1)/2
           value=round(value)
 
-          c=s.planet_type.color_map[value+1]
+          c=self.planet_type.color_map[value+1]
           if not fullmap and phasevalue==1 then
             c=dark_planet_colors[c+1]
           end
         end
-        sset(s.x,s.y,c)
-        s.x = s.x + 1
+        color(c)
+        sset(self.x,self.y)
+        self.x = self.x + 1
       end
-      s.x=0
-      if s.phi>=0 then
-        s.yfromzero = s.yfromzero + 1
-        s.y=radius+s.yfromzero
-        s.phi = s.phi + .5/(s.height-1)
+      self.x=0
+      if self.phi>=0 then
+        self.yfromzero = self.yfromzero + 1
+        self.y=radius+self.yfromzero
+        self.phi = self.phi + .5/(self.height-1)
       else
-        s.y=radius-s.yfromzero
+        self.y=radius-self.yfromzero
       end
-      s.phi = s.phi * -1
+      self.phi = self.phi * -1
     end
 
   end
 
-  return s.rendered_terrain
+  love.graphics.setCanvas(game_screen_canvas)
+  love.graphics.setBlendMode("alpha")
+  love.graphics.setColor(255, 255, 255, 255)
+
+  return self.rendered_terrain
 end
 
 function add_npc(pos,pirate)

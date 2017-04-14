@@ -99,7 +99,11 @@ rectfill = (ax, ay, bx, by, c) ->
       math.floor(bx - ax) + 1,
       math.floor(by - ay) + 1)
 
+sset = (x, y) ->
+  love.graphics.points(x, y)
+
 {
+  :sset
   :rectfill
   :circfill
   :cls
