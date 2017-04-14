@@ -2,35 +2,12 @@
 local shine = require("shine")
 local lume = require("lume")
 
-function band(x, y)
-	return bit.band(x*0x10000, y*0x10000)/0x10000
-end
 
-function bor(x, y)
-	return bit.bor(x*0x10000, y*0x10000)/0x10000
-end
+local round, randomseed, random, random_int, cos, sin, sqrt, sub, add, del, abs, min, max, floor, ceil, rectfill, circfill, cls, color, sset, band, bor, bxor, bnot, shl, shr
 
-function bxor(x, y)
-	return bit.bxor(x*0x10000, y*0x10000)/0x10000
-end
-
-function bnot(x)
-	return bit.bnot(x*0x10000)/0x10000
-end
-
-function shl(x, y)
-	return bit.lshift(x*0x10000, y)/0x10000
-end
-
-function shr(x, y)
-	return bit.arshift(x*0x10000, y)/0x10000
-end
-
-
-local round, randomseed, random, random_int, cos, sin, sqrt, sub, add, del, abs, min, max, floor, ceil, rectfill, circfill, cls, color, sset
 do
   local _obj_0 = require("helpers")
-  rectfill, circfill, cls, color, round, randomseed, random, random_int, cos, sin, sqrt, sub, add, del, abs, min, max, floor, ceil, sset = _obj_0.rectfill, _obj_0.circfill, _obj_0.cls, _obj_0.color, _obj_0.round, _obj_0.randomseed, _obj_0.random, _obj_0.random_int, _obj_0.cos, _obj_0.sin, _obj_0.sqrt, _obj_0.sub, _obj_0.add, _obj_0.del, _obj_0.abs, _obj_0.min, _obj_0.max, _obj_0.floor, _obj_0.ceil, _obj_0.sset
+  rectfill, circfill, cls, color, round, randomseed, random, random_int, cos, sin, sqrt, sub, add, del, abs, min, max, floor, ceil, sset, band, bor, bxor, bnot, shl, shr = _obj_0.rectfill, _obj_0.circfill, _obj_0.cls, _obj_0.color, _obj_0.round, _obj_0.randomseed, _obj_0.random, _obj_0.random_int, _obj_0.cos, _obj_0.sin, _obj_0.sqrt, _obj_0.sub, _obj_0.add, _obj_0.del, _obj_0.abs, _obj_0.min, _obj_0.max, _obj_0.floor, _obj_0.ceil, _obj_0.sset, _obj_0.band, _obj_0.bor, _obj_0.bxor, _obj_0.bnot, _obj_0.shl, _obj_0.shr
 end
 
 -- load vector.moon

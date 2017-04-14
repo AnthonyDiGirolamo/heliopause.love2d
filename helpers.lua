@@ -167,6 +167,30 @@ local sset
 sset = function(x, y)
   return love.graphics.points(x, y)
 end
+local band
+band = function(x, y)
+  return bit.band(x * 0x10000, y * 0x10000) / 0x10000
+end
+local bor
+bor = function(x, y)
+  return bit.bor(x * 0x10000, y * 0x10000) / 0x10000
+end
+local bxor
+bxor = function(x, y)
+  return bit.bxor(x * 0x10000, y * 0x10000) / 0x10000
+end
+local bnot
+bnot = function(x)
+  return bit.bnot(x * 0x10000) / 0x10000
+end
+local shl
+shl = function(x, y)
+  return bit.lshift(x * 0x10000, y) / 0x10000
+end
+local shr
+shr = function(x, y)
+  return bit.arshift(x * 0x10000, y) / 0x10000
+end
 return {
   sset = sset,
   rectfill = rectfill,
@@ -188,5 +212,11 @@ return {
   min = min,
   max = max,
   floor = floor,
-  ceil = ceil
+  ceil = ceil,
+  band = band,
+  bor = bor,
+  bxor = bxor,
+  bnot = bnot,
+  shl = shl,
+  shr = shr
 }

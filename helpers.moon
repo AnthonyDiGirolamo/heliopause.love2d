@@ -70,7 +70,7 @@ circfill = (x, y, radius, c) ->
   color c
   love.graphics.circle("fill", x, y, radius)
 
--- function rect(ax, ay, bx, by, c)
+-- rect(ax, ay, bx, by, c)
 --   color(c)
 --   local w = bx-ax
 --   local h = bx-ax
@@ -79,8 +79,8 @@ circfill = (x, y, radius, c) ->
 --   --   love.graphics.points(ax, ay)
 --   -- else
 --     love.graphics.rectangle("line", ax, ay, w, h)
---   -- end
--- end
+--   --
+--
 
 rectfill = (ax, ay, bx, by, c) ->
   color c if c
@@ -101,6 +101,31 @@ rectfill = (ax, ay, bx, by, c) ->
 
 sset = (x, y) ->
   love.graphics.points(x, y)
+
+
+band = (x, y) ->
+	bit.band(x*0x10000, y*0x10000)/0x10000
+
+
+bor = (x, y) ->
+	bit.bor(x*0x10000, y*0x10000)/0x10000
+
+
+bxor = (x, y) ->
+	bit.bxor(x*0x10000, y*0x10000)/0x10000
+
+
+bnot = (x) ->
+	bit.bnot(x*0x10000)/0x10000
+
+
+shl = (x, y) ->
+	bit.lshift(x*0x10000, y)/0x10000
+
+
+shr = (x, y) ->
+	bit.arshift(x*0x10000, y)/0x10000
+
 
 {
   :sset
@@ -124,4 +149,10 @@ sset = (x, y) ->
   :max
   :floor
   :ceil
+  :band
+  :bor
+  :bxor
+  :bnot
+  :shl
+  :shr
 }
