@@ -100,7 +100,7 @@ rectfill = (ax, ay, bx, by, c) ->
       math.floor(by - ay) + 1)
 
 sset = (x, y) ->
-  love.graphics.points(x, y)
+  love.graphics.points(x+1, y+1)
 
 
 band = (x, y) ->

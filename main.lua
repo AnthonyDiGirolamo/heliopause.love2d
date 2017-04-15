@@ -28,22 +28,22 @@ function stat(args)
 end
 
 
--- black       = 0
--- dark_blue   = 1
--- dark_purple = 2
--- dark_green  = 3
--- brown       = 4
--- dark_gray   = 5
--- light_gray  = 6
--- white       = 7
--- red         = 8
--- orange      = 9
--- yellow      = 10
--- green       = 11
--- blue        = 12
--- indigo      = 13
--- pink        = 14
--- peach       = 15
+black       = 0
+dark_blue   = 1
+dark_purple = 2
+dark_green  = 3
+brown       = 4
+dark_gray   = 5
+light_gray  = 6
+white       = 7
+red         = 8
+orange      = 9
+yellow      = 10
+green       = 11
+blue        = 12
+indigo      = 13
+pink        = 14
+peach       = 15
 
 function vector_distance(a,b)
   return (b-a):scaled_length()
@@ -212,7 +212,7 @@ function love.draw()
   for i, message in ipairs(debug_messages) do
     love.graphics.print(
       message,
-      i*36+screen_height,
+      i*36+10, --screen_height,
       screen_height-50,
       deg270)
   end
@@ -1332,6 +1332,11 @@ function planet:render_planet(fullmap,renderback)
     -- palt(0,false)
     -- palt(self.planet_type.transparent_color,true)
     love.graphics.clear()
+    -- color(pink)
+    -- sset(0,0)
+    -- sset(1,1)
+    -- sset(2,2)
+    xvaluestring = ""
     if fullmap then
       self.width,self.height=114,96
     else
@@ -1341,12 +1346,27 @@ function planet:render_planet(fullmap,renderback)
     self.rendered_circle=true
   end
 
-  local m = ""
-  for i, x in ipairs(self.xvalues) do
-    m = m..x..", "
-  end
+  -- local m = ""
+  -- for i, x in ipairs(self.xvalues) do
+  --   m = m..x..", "
+  -- end
 
-  table.insert(debug_messages, m)
+  -- table.insert(debug_messages, self.xvalues[1])
+  -- table.insert(debug_messages, self.xvalues[#self.xvalues])
+  -- local absy=abs(radius-self.y)+1
+  -- xvaluestring = xvaluestring..absy.." "
+  -- xvaluestring = xvaluestring..self.y.." -> "
+  -- if self.xvalues[absy] then
+  --   xvaluestring = xvaluestring.." "..self.xvalues[absy].." "
+  -- else
+  --   xvaluestring = xvaluestring.." nil "
+  -- end
+  -- if self.xvalues[self.y] then
+  --   xvaluestring = xvaluestring.." "..self.xvalues[self.y].."\n"
+  -- else
+  --   xvaluestring = xvaluestring.." nil\n"
+  -- end
+  -- table.insert(debug_messages, xvaluestring)
 
   if (not self.rendered_terrain) and self.rendered_circle then
 
@@ -1395,7 +1415,12 @@ function planet:render_planet(fullmap,renderback)
 
         -- if fullmap or phasevalue==1 then
         if fullmap or
-          phasevalue ~= 0
+          (phasevalue ~= 0 and
+             xvalueindex<=#self.xvalues and
+             self.x >= self.radius-self.xvalues[xvalueindex] and
+             self.x < self.radius+self.xvalues[xvalueindex]
+          )
+
         then
           -- and sget(self.x,self.y)~=self.planet_type.transparent_color then
           local freq=self.planet_type.noise_zoom

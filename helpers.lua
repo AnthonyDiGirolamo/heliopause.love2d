@@ -165,7 +165,7 @@ rectfill = function(ax, ay, bx, by, c)
 end
 local sset
 sset = function(x, y)
-  return love.graphics.points(x, y)
+  return love.graphics.points(x + 1, y + 1)
 end
 local band
 band = function(x, y)
