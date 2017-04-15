@@ -3,11 +3,11 @@ local shine = require("shine")
 local lume = require("lume")
 
 
-local round, randomseed, random, random_int, cos, sin, sqrt, sub, add, del, abs, min, max, floor, ceil, rectfill, circfill, cls, color, sset, band, bor, bxor, bnot, shl, shr
+local round, randomseed, random, random_int, cos, sin, sqrt, sub, add, del, abs, min, max, floor, ceil, rect, rectfill, circfill, cls, color, sset, band, bor, bxor, bnot, shl, shr
 
 do
   local _obj_0 = require("helpers")
-  rectfill, circfill, cls, color, round, randomseed, random, random_int, cos, sin, sqrt, sub, add, del, abs, min, max, floor, ceil, sset, band, bor, bxor, bnot, shl, shr = _obj_0.rectfill, _obj_0.circfill, _obj_0.cls, _obj_0.color, _obj_0.round, _obj_0.randomseed, _obj_0.random, _obj_0.random_int, _obj_0.cos, _obj_0.sin, _obj_0.sqrt, _obj_0.sub, _obj_0.add, _obj_0.del, _obj_0.abs, _obj_0.min, _obj_0.max, _obj_0.floor, _obj_0.ceil, _obj_0.sset, _obj_0.band, _obj_0.bor, _obj_0.bxor, _obj_0.bnot, _obj_0.shl, _obj_0.shr
+  rect, rectfill, circfill, cls, color, round, randomseed, random, random_int, cos, sin, sqrt, sub, add, del, abs, min, max, floor, ceil, sset, band, bor, bxor, bnot, shl, shr = _obj_0.rect, _obj_0.rectfill, _obj_0.circfill, _obj_0.cls, _obj_0.color, _obj_0.round, _obj_0.randomseed, _obj_0.random, _obj_0.random_int, _obj_0.cos, _obj_0.sin, _obj_0.sqrt, _obj_0.sub, _obj_0.add, _obj_0.del, _obj_0.abs, _obj_0.min, _obj_0.max, _obj_0.floor, _obj_0.ceil, _obj_0.sset, _obj_0.band, _obj_0.bor, _obj_0.bxor, _obj_0.bnot, _obj_0.shl, _obj_0.shr
 end
 
 -- load vector.moon
@@ -49,11 +49,22 @@ function vector_distance(a,b)
   return (b-a):scaled_length()
 end
 
-local time = 0
-local screen_width, screen_height = 1366, 768
 -- local pixel_screen_width, pixel_screen_height = 128, 128
 local pixel_screen_width, pixel_screen_height = 160, 160
 -- local pixel_screen_width, pixel_screen_height = 256, 256
+function set_screen_size()
+  game_screen_canvas = love.graphics.newCanvas(pixel_screen_width, pixel_screen_height)
+  game_screen_canvas:setFilter("nearest", "nearest")
+  mmap_sizes = {floor(pixel_screen_width*.375), pixel_screen_width, 0}
+  mmap_sizes[0] = floor(pixel_screen_width*.1875)
+  setup_mmap()
+  screen_center = Vector(floor(pixel_screen_width/2), floor(pixel_screen_height/2))
+  -- pilot.screen_position=screen_center
+end
+
+
+local time = 0
+local screen_width, screen_height = 1366, 768
 local starfield_count = 40 * (pixel_screen_width*pixel_screen_height) / (128*128)
 local screen_center = Vector(floor(pixel_screen_width/2),floor(pixel_screen_height/2))
 local buttons
@@ -132,8 +143,8 @@ function love.draw()
   debug_messages = {
     ("FPS:     " .. love.timer.getFPS()),
     ("dt:      " .. love.timer.getDelta()),
-    ("time:    " .. time),
-    ("os.time: " .. os.time()),
+    -- ("time:    " .. time),
+    -- ("os.time: " .. os.time()),
     ("screen:  " .. screen_width.." x "..screen_height),
   }
 
@@ -212,7 +223,7 @@ function love.draw()
   for i, message in ipairs(debug_messages) do
     love.graphics.print(
       message,
-      i*36+10, --screen_height,
+      i*36+80, --screen_height,
       screen_height-50,
       deg270)
   end
@@ -550,6 +561,8 @@ function ship:draw()
   -- text((self.velocity_angle).." vel-a", 0,42)
   -- text((self.velocity_angle_opposite).." vel-a-o", 0,49)
   self:draw_sprite_rotated()
+
+  table.insert(debug_messages, "Sector Position: "..self.sector_position:__tostring())
 end
 
 function ship:hp_color()
@@ -1556,7 +1569,7 @@ function _init()
   landed=false
   particles={}
   pilot=ship.new()
-  pilot.npc = true
+  -- pilot.npc = true
   pilot:buildship(nil,2)
   load_sector()
   setup_mmap()
@@ -1598,7 +1611,7 @@ function draw_mmap_ship(obj)
       if obj.damage then
         p:draw_circle(1,9)
       else
-        rect(x-1,y-1,x+1,y+1,7)
+        rect(x-1,y-1,x,y,7)
       end
     end
   end
@@ -1804,6 +1817,9 @@ function main_menu()
                     menu("x7f6a|amore stars,~dimming,less stars,~colors,|",
                          {
                            function()
+                             pixel_screen_height = pixel_screen_height + 10
+                             pixel_screen_width = pixel_screen_width + 10
+                             set_screen_size()
                              starfield_count = starfield_count + 5
                              return "star count: "..starfield_count
                            end,
@@ -1813,6 +1829,9 @@ function main_menu()
                              return true
                            end,
                            function()
+                             pixel_screen_height = pixel_screen_height - 10
+                             pixel_screen_width = pixel_screen_width - 10
+                             set_screen_size()
                              starfield_count=max(0,starfield_count-5)
                              return "star count: "..starfield_count
                            end,

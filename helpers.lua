@@ -147,7 +147,10 @@ circfill = function(x, y, radius, c)
   return love.graphics.circle("fill", x, y, radius)
 end
 local rectfill
-rectfill = function(ax, ay, bx, by, c)
+rectfill = function(ax, ay, bx, by, c, style)
+  if style == nil then
+    style = "fill"
+  end
   if c then
     color(c)
   end
@@ -160,8 +163,12 @@ rectfill = function(ax, ay, bx, by, c)
   if ax == bx or ay == by then
     return love.graphics.line(ax, ay, bx, by)
   else
-    return love.graphics.rectangle("fill", math.floor(ax), math.floor(ay), math.floor(bx - ax) + 1, math.floor(by - ay) + 1)
+    return love.graphics.rectangle(style, math.floor(ax), math.floor(ay), math.floor(bx - ax) + 1, math.floor(by - ay) + 1)
   end
+end
+local rect
+rect = function(ax, ay, bx, by, c)
+  return rectfill(ax, ay, bx, by, c, "line")
 end
 local sset
 sset = function(x, y)
@@ -193,6 +200,7 @@ shr = function(x, y)
 end
 return {
   sset = sset,
+  rect = rect,
   rectfill = rectfill,
   circfill = circfill,
   cls = cls,

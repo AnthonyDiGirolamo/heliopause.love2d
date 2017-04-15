@@ -81,8 +81,7 @@ circfill = (x, y, radius, c) ->
 --     love.graphics.rectangle("line", ax, ay, w, h)
 --   --
 --
-
-rectfill = (ax, ay, bx, by, c) ->
+rectfill = (ax, ay, bx, by, c, style="fill") ->
   color c if c
   if bx < ax
     ax, bx = bx, ax
@@ -93,11 +92,14 @@ rectfill = (ax, ay, bx, by, c) ->
     -- rectangle is only one pixel tall or wide
     love.graphics.line ax, ay, bx, by
   else
-    love.graphics.rectangle("fill",
+    love.graphics.rectangle(style,
       math.floor(ax),
       math.floor(ay),
       math.floor(bx - ax) + 1,
       math.floor(by - ay) + 1)
+
+rect = (ax, ay, bx, by, c) ->
+  rectfill ax, ay, bx, by, c, "line"
 
 sset = (x, y) ->
   love.graphics.points(x+1, y+1)
@@ -129,6 +131,7 @@ shr = (x, y) ->
 
 {
   :sset
+  :rect
   :rectfill
   :circfill
   :cls
