@@ -430,7 +430,7 @@ end
 
 function ship:draw_sprite_rotated(offscreen_pos,angle)
   if self.dead then return end
-  local screen_position=(offscreen_pos or self.screen_position) + zoom_offset
+  local screen_position=offscreen_pos or self.screen_position
   local a=angle or self.angle_radians
   local rows,cols=self.sprite_rows,self.sprite_columns
   local tcolor=self.transparent_color
@@ -440,17 +440,18 @@ function ship:draw_sprite_rotated(offscreen_pos,angle)
   if self.targeted then
     local targetcircle_radius=round(rows/2)+4
     local circlecolor,circleshadow=self:targeted_color()
+    local targetcircle_screen_position=screen_position+zoom_offset
     if offscreen_pos then
-      (screen_position+Vector(1,1)):draw_circle(targetcircle_radius,circleshadow,true)
-      screen_position:draw_circle(targetcircle_radius,0,true)
+      (targetcircle_screen_position+Vector(1,1)):draw_circle(targetcircle_radius,circleshadow,true)
+      targetcircle_screen_position:draw_circle(targetcircle_radius,0,true)
     end
-    screen_position:draw_circle(targetcircle_radius,circlecolor)
+    targetcircle_screen_position:draw_circle(targetcircle_radius,circlecolor)
   end
 
   for index, p in ipairs(projectiles) do
     if p.firing_ship~=self then
       if (p.sector_position and offscreen_pos and (self.sector_position-p.sector_position):scaled_length()<=rows) or
-      vector_distance(p.screen_position+zoom_offset,screen_position)<rows then
+      vector_distance(p.screen_position,screen_position)<rows then
         add(close_projectiles,p)
       end
     end
@@ -469,10 +470,10 @@ function ship:draw_sprite_rotated(offscreen_pos,angle)
         pixel2:rotate(a):add(screen_position):round()
 
         if self.hp<1 and random()<.8 then
-          make_explosion(pixel1+zoom_offset,rows/2,18,self.velocity_vector)
+          make_explosion(pixel1,rows/2,18,self.velocity_vector)
           -- sfx(55,2)
           if not offscreen_pos then
-            add(particles,spark.new(pixel1-zoom_offset,rotated_angle(random(.25)+.25)+self.velocity_vector,color,128+random_int(32)))
+            add(particles,spark.new(pixel1,rotated_angle(random(.25)+.25)+self.velocity_vector,color,128+random_int(32)))
           end
 
         else
@@ -481,13 +482,13 @@ function ship:draw_sprite_rotated(offscreen_pos,angle)
 
             local impact=false
             if not offscreen_pos
-              and (pixel1:about_equals(projectile.screen_position+zoom_offset)
+              and (pixel1:about_equals(projectile.screen_position)
                      or (projectile.position2
-                         and pixel1:about_equals(projectile.position2+zoom_offset))) then
+                         and pixel1:about_equals(projectile.position2))) then
                 impact=true
             elseif offscreen_pos
               and projectile.last_offscreen_pos
-            and pixel1:about_equals(projectile.last_offscreen_pos+zoom_offset) then
+            and pixel1:about_equals(projectile.last_offscreen_pos) then
               impact=true
             end
 
@@ -496,10 +497,10 @@ function ship:draw_sprite_rotated(offscreen_pos,angle)
               local damage=projectile.damage or 1
               self.hp = self.hp - damage
               if damage>10 then
-                make_explosion(pixel1-zoom_offset,8,12,self.velocity_vector)
+                make_explosion(pixel1,8,12,self.velocity_vector)
                 -- sfx(57,1)
               else
-                make_explosion(pixel1-zoom_offset,2,6,self.velocity_vector)
+                make_explosion(pixel1,2,6,self.velocity_vector)
                 -- sfx(56,2)
               end
               local old_hp_percent=self.hp_percent
@@ -508,7 +509,7 @@ function ship:draw_sprite_rotated(offscreen_pos,angle)
                 note_add("thruster malfunction")
               end
               if random()<.5 then
-                add(particles,spark.new(pixel1-zoom_offset,rotated_angle(random(2)+1)+self.velocity_vector,color,128))
+                add(particles,spark.new(pixel1,rotated_angle(random(2)+1)+self.velocity_vector,color,128))
               end
               del(projectiles,projectile)
               self.sprite[x][y]=-5
@@ -520,6 +521,8 @@ function ship:draw_sprite_rotated(offscreen_pos,angle)
 
           if color<0 then color=5 end
 
+          pixel1:add(zoom_offset)
+          pixel2:add(zoom_offset)
           rectfill(
             pixel1.x,pixel1.y,
             pixel2.x,pixel2.y,
