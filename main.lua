@@ -98,8 +98,8 @@ function love.load(arg)
 zoom_offset=Vector(0,0)
 time = 0
 screen_width, screen_height = 1366, 768
--- pixel_screen_width, pixel_screen_height = 128, 128
-pixel_screen_width, pixel_screen_height = 160, 160
+pixel_screen_width, pixel_screen_height = 128, 128
+-- pixel_screen_width, pixel_screen_height = 160, 160
 -- pixel_screen_width, pixel_screen_height = 256, 256
 starfield_count = floor(40 * (pixel_screen_width*pixel_screen_height) / (128*128))
 screen_center = Vector(floor(pixel_screen_width/2),floor(pixel_screen_height/2))
@@ -1853,7 +1853,6 @@ function main_menu()
                     menu("x7f6a|amore stars,~dimming,less stars,~colors,|",
                          {
                            function()
-                             set_screen_size(10)
                              starfield_count = starfield_count + 5
                              return "star count: "..starfield_count
                            end,
@@ -1863,7 +1862,6 @@ function main_menu()
                              return true
                            end,
                            function()
-                             set_screen_size(-10)
                              starfield_count=max(0,starfield_count-5)
                              return "star count: "..starfield_count
                            end,
@@ -2077,6 +2075,16 @@ function _update()
         pilot:cut_thrust()
       end
     end
+
+    if btn(6) then
+      set_screen_size(-4)
+      starfield_count=max(0,starfield_count-1)
+    end
+    if btn(7) then
+      set_screen_size(4)
+      starfield_count = starfield_count + 1
+    end
+
 
     if btn(0,0) then pilot:turn_left() end
     if btn(1,0) then pilot:turn_right() end

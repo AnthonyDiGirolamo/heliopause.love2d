@@ -1,7 +1,10 @@
 local Vector
 Vector = require("vector").Vector
-local color
-color = require("helpers").color
+local color, floor
+do
+  local _obj_0 = require("helpers")
+  color, floor = _obj_0.color, _obj_0.floor
+end
 local ControlPad
 do
   local _class_0
@@ -25,13 +28,16 @@ do
       self.button_separation = separation
       local dpad = Vector(self.screen_height + 2 * separation, self.screen_height - 2 * separation)
       local ab = Vector(self.screen_height + 2 * separation, 2 * separation)
+      local zoom = Vector(self.screen_width - 2 * separation, floor(self.screen_height / 2))
       self.screen_positions = {
         dpad + Vector(0, separation),
         dpad + Vector(0, -separation),
         dpad + Vector(-separation, 0),
         dpad + Vector(separation, 0),
         ab + Vector(0, -separation),
-        ab + Vector(0, separation)
+        ab + Vector(0, separation),
+        zoom + Vector(0, separation),
+        zoom + Vector(0, -separation)
       }
       do
         local _accum_0 = { }

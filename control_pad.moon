@@ -1,5 +1,5 @@
 import Vector from require "vector"
-import color from require "helpers"
+import color, floor from require "helpers"
 
 class ControlPad
   new: (@screen_width, @screen_height, @portrait) =>
@@ -25,6 +25,8 @@ class ControlPad
              @screen_height - 2 * separation
     ab = Vector @screen_height + 2 * separation,
            2 * separation
+    zoom = Vector @screen_width - 2 * separation,
+                  floor(@screen_height/2)
     @screen_positions = {
       dpad + Vector(0, separation)  -- left
       dpad + Vector(0, -separation) -- right
@@ -32,6 +34,8 @@ class ControlPad
       dpad + Vector(separation, 0)  -- down
       ab + Vector(0, -separation)   -- pause
       ab + Vector(0, separation)    -- fire
+      zoom + Vector(0, separation)  -- zoom out
+      zoom + Vector(0, -separation) -- zoom in
     }
     @screen_positions = [p\round! for p in *@screen_positions]
     @hold_time = [0 for p in *@screen_positions]
