@@ -46,7 +46,7 @@ pink        = 14
 peach       = 15
 
 function vector_distance(a,b)
-  return (b-a):scaled_length()
+  return (b-a):length()
 end
 
 function set_screen_size(diff)
@@ -450,7 +450,7 @@ function ship:draw_sprite_rotated(offscreen_pos,angle)
 
   for index, p in ipairs(projectiles) do
     if p.firing_ship~=self then
-      if (p.sector_position and offscreen_pos and (self.sector_position-p.sector_position):scaled_length()<=rows) or
+      if (p.sector_position and offscreen_pos and (self.sector_position-p.sector_position):length()<=rows) or
       vector_distance(p.screen_position,screen_position)<rows then
         add(close_projectiles,p)
       end
@@ -584,7 +584,7 @@ function ship:draw()
   self:draw_sprite_rotated() --screen_center+zoom_offset)
 
   table.insert(debug_messages, "Sector Position: "..self.sector_position:__tostring())
-  table.insert(debug_messages, "Screen Position: "..self.screen_position:__tostring())
+  table.insert(debug_messages, "Zoom offset: "..zoom_offset:__tostring())
 
   -- local nplanet,dist=nearest_planet()
   -- table.insert(debug_messages, "Nearest Planet Position: "..nplanet.sector_position:__tostring())
@@ -662,7 +662,7 @@ end
 
 function ship:update_steering_velocity(modifier)
   local desired_velocity=self.sector_position-self.destination
-  self.distance_to_destination=desired_velocity:scaled_length()
+  self.distance_to_destination=desired_velocity:length()
   self.steer_vel=(desired_velocity-self.velocity_vector)*(modifier or -1)
 end
 
@@ -673,7 +673,7 @@ function ship:seek()
   self.seektime = self.seektime + 1
 
   local target_offset=self.destination-self.sector_position
-  local distance=target_offset:scaled_length()
+  local distance=target_offset:length()
   self.distance_to_destination=distance
   local maxspeed=distance/50
   local ramped_speed=(distance/(self.max_distance_to_destination*.7))*maxspeed
@@ -682,7 +682,7 @@ function ship:seek()
   self.steer_vel=desired_velocity-self.velocity_vector
 
   if self:rotate_towards_heading(self.steer_vel:angle()) then
-    self:apply_thrust(self.steer_vel:scaled_length())
+    self:apply_thrust(self.steer_vel:length())
   end
   if self.hostile then
     if distance<128 then
@@ -925,7 +925,7 @@ function missile:update()
   self.destination=self.target:predict_sector_position()
   self:update_steering_velocity()
   self.angle_radians=self.steer_vel:angle()
-  self:apply_thrust(self.steer_vel:scaled_length())
+  self:apply_thrust(self.steer_vel:length())
   self.duration = self.duration - 1
   self:update_location()
 end
@@ -1794,7 +1794,7 @@ function menu(coptions,callbacks)
     local text_color=cur_menu_colors[i]
     if i==pressed then text_color=darkshipcolors[text_color] end
     if cur_options[i] then
-      local p=rotated_vector(a,15)+Vector(64,90)
+      local p=rotated_vector(a,15)+Vector(floor(pixel_screen_width/2),floor(pixel_screen_height/2)+26)
       if a==.5 then
         p.x = p.x - 4*#cur_options[i]
       elseif a~=1 then
@@ -1805,8 +1805,10 @@ function menu(coptions,callbacks)
         p.x,p.y,text_color,true)
     end
   end
-
-  text("  ^  \n<  >\n  v",52,84,6,true)
+  text("  |  \n -+- \n  |",
+       floor(pixel_screen_width/2)-10,
+       floor(pixel_screen_height/2)+21,
+       6,true)
 end
 
 function main_menu()
@@ -2170,7 +2172,7 @@ function render_game_screen()
     local targeted_ship=pilot.target
     if targeted_ship then
       if not targeted_ship:is_visible(pilot.sector_position) then
-        local distance=""..floor((targeted_ship.screen_position-player_screen_position):scaled_length())
+        local distance=""..floor((targeted_ship.screen_position-player_screen_position):length())
         local color,shadow=targeted_ship:targeted_color()
         local hull_radius=floor(targeted_ship.sprite_rows*.5)
         local d=rotated_vector((targeted_ship.screen_position-player_screen_position):angle())
@@ -2223,7 +2225,7 @@ function render_game_screen()
       del(projectiles,p)
     else
       if last_offscreen_pos and p.sector_position and pilot.target and
-      (pilot.target.sector_position-p.sector_position):scaled_length()<=pilot.target.sprite_rows then
+      (pilot.target.sector_position-p.sector_position):length()<=pilot.target.sprite_rows then
         p:draw(nil,(p.sector_position-pilot.target.sector_position)+last_offscreen_pos)
       else
         p:draw(pilot.velocity_vector)
