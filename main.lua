@@ -64,6 +64,10 @@ function set_screen_size(diff)
   -- if diff > 0 then
     -- pilot.sector_position=pilot.sector_position-Vector(offset,offset)
 
+  for index,star in ipairs(sect.starfield) do
+    star.position=star.position+Vector(offset,offset)
+  end
+
     -- for index, p in ipairs(sect.planets) do
     --   p.sector_position=p.sector_position-Vector(offset,offset)
     -- end
@@ -446,7 +450,7 @@ function ship:draw_sprite_rotated(offscreen_pos,angle)
   for index, p in ipairs(projectiles) do
     if p.firing_ship~=self then
       if (p.sector_position and offscreen_pos and (self.sector_position-p.sector_position):scaled_length()<=rows) or
-      vector_distance(p.screen_position,screen_position)<rows then
+      vector_distance(p.screen_position+zoom_offset,screen_position)<rows then
         add(close_projectiles,p)
       end
     end
@@ -465,10 +469,10 @@ function ship:draw_sprite_rotated(offscreen_pos,angle)
         pixel2:rotate(a):add(screen_position):round()
 
         if self.hp<1 and random()<.8 then
-          make_explosion(pixel1,rows/2,18,self.velocity_vector)
+          make_explosion(pixel1+zoom_offset,rows/2,18,self.velocity_vector)
           -- sfx(55,2)
           if not offscreen_pos then
-            add(particles,spark.new(pixel1,rotated_angle(random(.25)+.25)+self.velocity_vector,color,128+random_int(32)))
+            add(particles,spark.new(pixel1-zoom_offset,rotated_angle(random(.25)+.25)+self.velocity_vector,color,128+random_int(32)))
           end
 
         else
@@ -477,13 +481,13 @@ function ship:draw_sprite_rotated(offscreen_pos,angle)
 
             local impact=false
             if not offscreen_pos
-              and (pixel1:about_equals(projectile.screen_position)
+              and (pixel1:about_equals(projectile.screen_position+zoom_offset)
                      or (projectile.position2
-                         and pixel1:about_equals(projectile.position2))) then
+                         and pixel1:about_equals(projectile.position2+zoom_offset))) then
                 impact=true
             elseif offscreen_pos
               and projectile.last_offscreen_pos
-            and pixel1:about_equals(projectile.last_offscreen_pos) then
+            and pixel1:about_equals(projectile.last_offscreen_pos+zoom_offset) then
               impact=true
             end
 
@@ -492,10 +496,10 @@ function ship:draw_sprite_rotated(offscreen_pos,angle)
               local damage=projectile.damage or 1
               self.hp = self.hp - damage
               if damage>10 then
-                make_explosion(pixel1,8,12,self.velocity_vector)
+                make_explosion(pixel1-zoom_offset,8,12,self.velocity_vector)
                 -- sfx(57,1)
               else
-                make_explosion(pixel1,2,6,self.velocity_vector)
+                make_explosion(pixel1-zoom_offset,2,6,self.velocity_vector)
                 -- sfx(56,2)
               end
               local old_hp_percent=self.hp_percent
@@ -504,7 +508,7 @@ function ship:draw_sprite_rotated(offscreen_pos,angle)
                 note_add("thruster malfunction")
               end
               if random()<.5 then
-                add(particles,spark.new(pixel1,rotated_angle(random(2)+1)+self.velocity_vector,color,128))
+                add(particles,spark.new(pixel1-zoom_offset,rotated_angle(random(2)+1)+self.velocity_vector,color,128))
               end
               del(projectiles,projectile)
               self.sprite[x][y]=-5
@@ -579,9 +583,10 @@ function ship:draw()
   table.insert(debug_messages, "Sector Position: "..self.sector_position:__tostring())
   table.insert(debug_messages, "Screen Position: "..self.screen_position:__tostring())
 
-  local nplanet,dist=nearest_planet()
-  table.insert(debug_messages, "Nearest Planet Position: "..nplanet.sector_position:__tostring())
-  table.insert(debug_messages, "Nearest Planet Screen Position: "..nplanet.screen_position:__tostring())
+  -- local nplanet,dist=nearest_planet()
+  -- table.insert(debug_messages, "Nearest Planet Position: "..nplanet.sector_position:__tostring())
+  -- table.insert(debug_messages, "Nearest Planet Screen Position: "..nplanet.screen_position:__tostring())
+
 end
 
 function ship:hp_color()
@@ -603,10 +608,10 @@ function ship:is_visible(player_ship_pos)
   local size=round(self.sprite_rows/2)
   local screen_position=(self.sector_position-player_ship_pos+screen_center):round()
   self.screen_position=screen_position
-  return screen_position.x<pixel_screen_width+size and
-    screen_position.x>0-size and
-    screen_position.y<pixel_screen_height+size and
-    screen_position.y>0-size
+  return screen_position.x+zoom_offset.x <pixel_screen_width+size and
+         screen_position.x+zoom_offset.x >0-size and
+         screen_position.y+zoom_offset.y <pixel_screen_height+size and
+         screen_position.y+zoom_offset.y >0-size
 end
 
 function ship:update_location()
@@ -976,10 +981,10 @@ end
 function stellar_object_is_visible(obj,ship_pos)
   obj.screen_position=obj.sector_position-ship_pos+screen_center
   return
-    obj.screen_position.x<pixel_screen_width+obj.radius and
-    obj.screen_position.x>0-obj.radius and
-    obj.screen_position.y<pixel_screen_width+obj.radius and
-    obj.screen_position.y>0-obj.radius
+    obj.screen_position.x+zoom_offset.x < pixel_screen_width+obj.radius and
+    obj.screen_position.x+zoom_offset.x > 0-obj.radius and
+    obj.screen_position.y+zoom_offset.y < pixel_screen_width+obj.radius and
+    obj.screen_position.y+zoom_offset.y > 0-obj.radius
 end
 
 -- starfield_count=40
@@ -1028,6 +1033,7 @@ end
 function sector:draw_starfield(shipvel)
   local lstart, lend
   for index,star in ipairs(self.starfield) do
+    local position=star.position+zoom_offset
     lstart=star.position+(shipvel*star.speed*-.5)
     lend=star.position+(shipvel*star.speed*.5)
     local i=star_color_monochrome+star_color_index+1
