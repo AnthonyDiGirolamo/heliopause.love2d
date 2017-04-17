@@ -49,25 +49,30 @@ function vector_distance(a,b)
   return (b-a):scaled_length()
 end
 
--- local pixel_screen_width, pixel_screen_height = 128, 128
-local pixel_screen_width, pixel_screen_height = 160, 160
--- local pixel_screen_width, pixel_screen_height = 256, 256
-function set_screen_size()
+function set_screen_size(diff)
+  pixel_screen_height = pixel_screen_height + diff
+  pixel_screen_width = pixel_screen_width + diff
   game_screen_canvas = love.graphics.newCanvas(pixel_screen_width, pixel_screen_height)
   game_screen_canvas:setFilter("nearest", "nearest")
   mmap_sizes = {floor(pixel_screen_width*.375), pixel_screen_width, 0}
   mmap_sizes[0] = floor(pixel_screen_width*.1875)
   setup_mmap()
-  screen_center = Vector(floor(pixel_screen_width/2), floor(pixel_screen_height/2))
+  local offset=floor(diff/2)
+  zoom_offset=zoom_offset+Vector(offset,offset)
+  -- screen_center = Vector(floor(pixel_screen_width/2), floor(pixel_screen_height/2))
   -- pilot.screen_position=screen_center
+  -- if diff > 0 then
+    -- pilot.sector_position=pilot.sector_position-Vector(offset,offset)
+
+    -- for index, p in ipairs(sect.planets) do
+    --   p.sector_position=p.sector_position-Vector(offset,offset)
+    -- end
+    -- for index, s in ipairs(npcships) do
+    --   s.sector_position=s.sector_position-Vector(offset,offset)
+    -- end
+  -- end
 end
 
-
-local time = 0
-local screen_width, screen_height = 1366, 768
-local starfield_count = 40 * (pixel_screen_width*pixel_screen_height) / (128*128)
-local screen_center = Vector(floor(pixel_screen_width/2),floor(pixel_screen_height/2))
-local buttons
 
 function btn(number, player)
   return buttons:btn(number)
@@ -86,6 +91,15 @@ end
 --sect = sector.new()
 
 function love.load(arg)
+zoom_offset=Vector(0,0)
+time = 0
+screen_width, screen_height = 1366, 768
+-- pixel_screen_width, pixel_screen_height = 128, 128
+pixel_screen_width, pixel_screen_height = 160, 160
+-- pixel_screen_width, pixel_screen_height = 256, 256
+starfield_count = floor(40 * (pixel_screen_width*pixel_screen_height) / (128*128))
+screen_center = Vector(floor(pixel_screen_width/2),floor(pixel_screen_height/2))
+
   screen_width = love.graphics.getWidth()
   screen_height = love.graphics.getHeight()
   buttons = ControlPad(screen_width, screen_height, true)
@@ -412,7 +426,7 @@ end
 
 function ship:draw_sprite_rotated(offscreen_pos,angle)
   if self.dead then return end
-  local screen_position=offscreen_pos or self.screen_position
+  local screen_position=(offscreen_pos or self.screen_position) + zoom_offset
   local a=angle or self.angle_radians
   local rows,cols=self.sprite_rows,self.sprite_columns
   local tcolor=self.transparent_color
@@ -560,9 +574,14 @@ function ship:draw()
   -- text((self.heading).." heading", 0,35)
   -- text((self.velocity_angle).." vel-a", 0,42)
   -- text((self.velocity_angle_opposite).." vel-a-o", 0,49)
-  self:draw_sprite_rotated()
+  self:draw_sprite_rotated() --screen_center+zoom_offset)
 
   table.insert(debug_messages, "Sector Position: "..self.sector_position:__tostring())
+  table.insert(debug_messages, "Screen Position: "..self.screen_position:__tostring())
+
+  local nplanet,dist=nearest_planet()
+  table.insert(debug_messages, "Nearest Planet Position: "..nplanet.sector_position:__tostring())
+  table.insert(debug_messages, "Nearest Planet Screen Position: "..nplanet.screen_position:__tostring())
 end
 
 function ship:hp_color()
@@ -904,7 +923,7 @@ function missile:update()
 end
 
 function missile:draw(shipvel,offscreen_pos)
-  local screen_position=offscreen_pos or self.screen_position
+  local screen_position=(offscreen_pos or self.screen_position)+zoom_offset
   self.last_offscreen_pos=offscreen_pos
   if self:is_visible(pilot.sector_position) or offscreen_pos then
     screen_position:draw_line(screen_position+rotated_vector(self.angle_radians,4),6)
@@ -944,9 +963,10 @@ function sun.new(radius,x,y)
 end
 
 function sun:draw(ship_pos)
+  local screen_position=self.screen_position+zoom_offset
   if stellar_object_is_visible(self,ship_pos) then
     for i=0,1 do
-      self.screen_position:draw_circle(
+      screen_position:draw_circle(
         self.radius-i*3,
         sun_colors[i*5+self.sun_color_index],true)
     end
@@ -1078,7 +1098,8 @@ function spark:update(shipvel)
 end
 
 function spark:draw(shipvel)
-  self.screen_position:draw_point(self.color)
+  local screen_position=self.screen_position+zoom_offset
+  screen_position:draw_point(self.color)
   self:update(shipvel)
 end
 
@@ -1103,11 +1124,12 @@ function explosion.new(position,size,colorcount,shipvel)
 end
 
 function explosion:draw(shipvel)
+  local screen_position=self.screen_position+zoom_offset
   local r=round(self.radius)
   for i=r+3,r,-1 do
     local c=damage_colors[self.len-self.duration+i]
     if c then
-      self.screen_position:draw_circle(i,c,true)
+      screen_position:draw_circle(i,c,true)
     end
   end
   self:update(shipvel)
@@ -1135,7 +1157,9 @@ function cannon:update(shipvel)
   self.duration = self.duration - 1
 end
 function cannon:draw(shipvel)
-  self.position2:draw_line(self.screen_position,self.color)
+  local p2=self.position2+zoom_offset
+  local screen_position=self.screen_position+zoom_offset
+  p2:draw_line(screen_position,self.color)
 end
 
 thrustexhaust={}
@@ -1152,14 +1176,15 @@ function thrustexhaust:draw(shipvel)
   local c,pv=random_int(11,9),self.particle_velocity
   local deflection,flicker=pv:perpendicular()*0.7,pv*(random(2)+2)
   flicker = flicker + deflection*(random()-.5)
-  local p0,p1a=self.screen_position+flicker,self.screen_position+pv
+  local screen_position=self.screen_position+zoom_offset
+  local p0,p1a=screen_position+flicker,screen_position+pv
   for index, a in ipairs{p1a+deflection,p1a+deflection*-1} do
-    for index, b in ipairs{p0,self.screen_position} do
+    for index, b in ipairs{p0,screen_position} do
       a:draw_line(b,c)
     end
   end
   if random()>.4 then
-    add(particles,spark.new(p0,shipvel+(flicker*.25),c))
+    add(particles,spark.new(p0-zoom_offset,shipvel+(flicker*.25),c))
   end
   self.screen_position:add(pv-shipvel)
   self.duration = self.duration - 1
@@ -1311,8 +1336,8 @@ function planet:draw(ship_pos)
 
     love.graphics.draw(
       self.planet_canvas,
-      self.screen_position.x-self.radius,
-      self.screen_position.y-self.radius
+      self.screen_position.x-self.radius+zoom_offset.x,
+      self.screen_position.y-self.radius+zoom_offset.y
       -- deg270,
       -- screen_height/pixel_screen_height, -- scale x
       -- screen_height/pixel_screen_height -- scale y
@@ -1817,9 +1842,7 @@ function main_menu()
                     menu("x7f6a|amore stars,~dimming,less stars,~colors,|",
                          {
                            function()
-                             pixel_screen_height = pixel_screen_height + 10
-                             pixel_screen_width = pixel_screen_width + 10
-                             set_screen_size()
+                             set_screen_size(10)
                              starfield_count = starfield_count + 5
                              return "star count: "..starfield_count
                            end,
@@ -1829,9 +1852,7 @@ function main_menu()
                              return true
                            end,
                            function()
-                             pixel_screen_height = pixel_screen_height - 10
-                             pixel_screen_width = pixel_screen_width - 10
-                             set_screen_size()
+                             set_screen_size(-10)
                              starfield_count=max(0,starfield_count-5)
                              return "star count: "..starfield_count
                            end,
@@ -2146,7 +2167,7 @@ function render_game_screen()
         local d=rotated_vector((targeted_ship.screen_position-player_screen_position):angle())
         local draw_dist_from_center = floor(pixel_screen_width/2-8)
         last_offscreen_pos=d*(draw_dist_from_center-hull_radius)+screen_center
-        local p2=last_offscreen_pos:clone():add(Vector(-4*(#distance/2)))
+        local p2=last_offscreen_pos:clone():add(Vector(-4*(#distance/2))):add(zoom_offset)
         targeted_ship:draw_sprite_rotated(last_offscreen_pos)
         if p2.y>floor(pixel_screen_width/2-1) then
           p2:add(Vector(1,-12-hull_radius))
