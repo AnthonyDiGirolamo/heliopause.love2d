@@ -52,6 +52,7 @@ end
 function set_screen_size(diff)
   pixel_screen_height = pixel_screen_height + diff
   pixel_screen_width = pixel_screen_width + diff
+  -- starfield_count = floor(40 * (pixel_screen_width*pixel_screen_height) / (128*128))
   game_screen_canvas = love.graphics.newCanvas(pixel_screen_width, pixel_screen_height)
   game_screen_canvas:setFilter("nearest", "nearest")
   mmap_sizes = {floor(pixel_screen_width*.375), pixel_screen_width, 0}
@@ -473,7 +474,9 @@ function ship:draw_sprite_rotated(offscreen_pos,angle)
           make_explosion(pixel1,rows/2,18,self.velocity_vector)
           -- sfx(55,2)
           if not offscreen_pos then
+            for i=1,random_int(4,2),1 do
             add(particles,spark.new(pixel1,rotated_angle(random(.25)+.25)+self.velocity_vector,color,128+random_int(32)))
+            end
           end
 
         else
@@ -2077,12 +2080,12 @@ function _update()
     end
 
     if btn(6) then
+      if pixel_screen_height >= 132 then
       set_screen_size(-4)
-      starfield_count=max(0,starfield_count-1)
+      end
     end
     if btn(7) then
       set_screen_size(4)
-      starfield_count = starfield_count + 1
     end
 
 
