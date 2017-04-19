@@ -239,6 +239,12 @@ function love.draw()
     end
   end
 
+  if buttons.touch_location_angle then
+    table.insert(debug_messages, "touch angle "..buttons.touch_location_angle)
+    table.insert(debug_messages, "touch length "..buttons.touch_location_length)
+    table.insert(debug_messages, "touch location "..buttons.touch_location:__tostring())
+  end
+
   for i, message in ipairs(debug_messages) do
     love.graphics.print(
       message,
@@ -403,6 +409,7 @@ function ship:buildship(seed,stype)
     turn_factor = turn_factor * .5
   end
   self.turn_rate=round(turn_factor*max(hp*-0.0470+11.4117,2))
+  self.turn_rate=90
   self.sprite_rows=rows
   self.sprite_columns=#ship_mask[1]
   self.transparent_color=ship_colors[4]
@@ -545,11 +552,11 @@ function ship:draw_sprite_rotated(offscreen_pos,angle)
 end
 
 function ship:turn_left()
-  self:rotate(self.turn_rate)
+  self:rotate(self.turn_rate * love.timer.getDelta())
 end
 
 function ship:turn_right()
-  self:rotate(-self.turn_rate)
+  self:rotate(-self.turn_rate * love.timer.getDelta())
 end
 
 function ship:rotate(signed_degrees)
@@ -588,6 +595,7 @@ function ship:draw()
 
   table.insert(debug_messages, "Sector Position: "..self.sector_position:__tostring())
   table.insert(debug_messages, "Zoom offset: "..zoom_offset:__tostring())
+  table.insert(debug_messages, "turn rate: "..self.turn_rate)
 
   -- local nplanet,dist=nearest_planet()
   -- table.insert(debug_messages, "Nearest Planet Position: "..nplanet.sector_position:__tostring())
@@ -784,7 +792,7 @@ end
 function ship:apply_thrust(max_velocity)
   self.accelerating=true
   if self.cur_deltav<self.deltav then
-    self.cur_deltav = self.cur_deltav + self.deltav/30
+    self.cur_deltav = self.cur_deltav + (self.deltav * love.timer.getDelta())
   else
     self.cur_deltav=self.deltav
   end
@@ -822,7 +830,7 @@ end
 function ship:rotate_towards_heading(heading)
   local delta=(heading*360-self.angle+180)%360-180
   if delta~=0 then
-    local r=self.turn_rate*delta/abs(delta)
+    local r=(self.turn_rate * love.timer.getDelta())*delta/abs(delta)
     if abs(delta)>abs(r) then delta=r end
     self:rotate(delta)
   end
@@ -1543,7 +1551,7 @@ function load_sector()
   sect=sector.new()
   note_add("arriving in system ngc "..sect.seed)
   add(sect.planets,sun.new())
-  for i=0,random_int(12,1) do
+  for i=0,random_int(12,2) do
     add(sect.planets,sect:new_planet_along_elipse())
   end
   pilot:set_position_near_object(sect.planets[2])
@@ -1570,7 +1578,7 @@ function _init()
   mmap_sizes[0] = floor(pixel_screen_width*.1875)
   music_tracks=split"n13,0,-1,"
   mousemodes=split"agamepad,two button mouse,stylus (pocketchip),"
-  framecount,secondcount,mousemode,mmap_size_index,music_track=0,0,0,0,0
+  framecount,secondcount,mousemode,mmap_size_index,music_track=0,0,2,0,0
   split_start=1
   btnv=split"x2031"
   ijks=nsplit"n1,0,0,1,1,0,|n1,0,0,1,0,1,|n0,0,1,1,0,1,|n0,0,1,0,1,1,|n0,1,0,0,1,1,|n0,1,0,1,1,0,|"
@@ -2020,7 +2028,12 @@ function _update()
     secondcount = secondcount + 1
   end
 
-  mbtn=stat(34)
+  -- mbtn=stat(34)
+  if btn(8) then
+    mbtn = 1
+  else
+    mbtn = 0
+  end
   local m=Vector(stat(32),stat(33))
   mv=m-screen_center
 
@@ -2061,16 +2074,16 @@ function _update()
     end
 
   else
-    -- pilot:apply_thrust()
-    -- pilot:turn_left()
 
     local no_orders=not pilot.orders[1]
     if no_orders and (mousemode==1 or (mousemode==2 and mbtn>0)) then
-      pilot:rotate_towards_heading(mv:angle())
+      -- pilot:rotate_towards_heading(mv:angle())
+      pilot:rotate_towards_heading(buttons.touch_location_angle)
     end
 
     if (mousemode==1 and mbtn>1)
-      or (mousemode==2 and mbtn>0 and mv:length()>38)
+      -- or (mousemode==2 and mbtn>0 and mv:length()>38)
+      or (mousemode==2 and mbtn>0 and buttons.touch_location_length>.60*buttons.touch_location_length_max)
     or btn(2,0) then
       pilot:apply_thrust()
     else
@@ -2079,13 +2092,15 @@ function _update()
       end
     end
 
+    -- zoom out
     if btn(6) then
-      if pixel_screen_height >= 132 then
+      set_screen_size(4)
+    end
+    -- zoom in
+    if btn(7) then
+      if pixel_screen_height >= 128+4 then
       set_screen_size(-4)
       end
-    end
-    if btn(7) then
-      set_screen_size(4)
     end
 
 

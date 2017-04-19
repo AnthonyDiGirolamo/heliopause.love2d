@@ -14,8 +14,10 @@ do
       "left",
       "up",
       "down",
+      "fire",
       "pause",
-      "fire"
+      "zoomout",
+      "zoomin"
     },
     set_positions = function(self, size, separation)
       if size == nil then
@@ -24,36 +26,48 @@ do
       if separation == nil then
         separation = 150
       end
-      self.button_size = size
-      self.button_separation = separation
+      local half_screen_height = floor(self.screen_height / 2)
+      self.touch_location_length_max = half_screen_height
       local dpad = Vector(self.screen_height + 2 * separation, self.screen_height - 2 * separation)
       local ab = Vector(self.screen_height + 2 * separation, 2 * separation)
-      local zoom = Vector(self.screen_width - 2 * separation, floor(self.screen_height / 2))
-      self.screen_positions = {
+      local zoom = Vector(self.screen_width - 2 * separation, half_screen_height)
+      self.positions = {
         dpad + Vector(0, separation),
         dpad + Vector(0, -separation),
         dpad + Vector(-separation, 0),
         dpad + Vector(separation, 0),
-        ab + Vector(0, -separation),
         ab + Vector(0, separation),
+        ab + Vector(0, -separation),
         zoom + Vector(0, separation),
-        zoom + Vector(0, -separation)
+        zoom + Vector(0, -separation),
+        Vector(half_screen_height, half_screen_height)
       }
       do
         local _accum_0 = { }
         local _len_0 = 1
-        local _list_0 = self.screen_positions
+        local _list_0 = self.positions
         for _index_0 = 1, #_list_0 do
           local p = _list_0[_index_0]
           _accum_0[_len_0] = p:round()
           _len_0 = _len_0 + 1
         end
-        self.screen_positions = _accum_0
+        self.positions = _accum_0
       end
+      self.sizes = {
+        size,
+        size,
+        size,
+        size,
+        size,
+        size,
+        size,
+        size,
+        half_screen_height
+      }
       do
         local _accum_0 = { }
         local _len_0 = 1
-        local _list_0 = self.screen_positions
+        local _list_0 = self.positions
         for _index_0 = 1, #_list_0 do
           local p = _list_0[_index_0]
           _accum_0[_len_0] = 0
@@ -64,7 +78,7 @@ do
       do
         local _accum_0 = { }
         local _len_0 = 1
-        local _list_0 = self.screen_positions
+        local _list_0 = self.positions
         for _index_0 = 1, #_list_0 do
           local p = _list_0[_index_0]
           _accum_0[_len_0] = 0
@@ -75,9 +89,9 @@ do
       return self
     end,
     draw = function(self)
-      for i, button in ipairs(self.screen_positions) do
+      for i, button in ipairs(self.positions) do
         color(5)
-        love.graphics.circle("line", button.x, button.y, self.button_size)
+        love.graphics.circle("line", button.x, button.y, self.sizes[i])
       end
     end,
     get_presses = function(self, touches, delta_time)
@@ -85,8 +99,15 @@ do
         local is_pressed = false
         for ti, touch in ipairs(touches) do
           local x, y = love.touch.getPosition(touch)
-          if (Vector(x, y) - self.screen_positions[bi]):length() < self.button_size then
+          local touch_location = Vector(x, y) - self.positions[bi]
+          local touch_location_length = touch_location:length()
+          if touch_location_length < self.sizes[bi] then
             is_pressed = true
+            if bi == #self.positions then
+              self.touch_location = touch_location:clone():rotate(-.25)
+              self.touch_location_angle = self.touch_location:angle()
+              self.touch_location_length = touch_location_length
+            end
           end
         end
         if is_pressed then
@@ -110,9 +131,13 @@ do
   _class_0 = setmetatable({
     __init = function(self, screen_width, screen_height, portrait)
       self.screen_width, self.screen_height, self.portrait = screen_width, screen_height, portrait
-      self.screen_positions = { }
+      self.positions = { }
       self.hold_time = { }
       self.hold_frames = { }
+      self.touch_location = Vector()
+      self.touch_location_angle = false
+      self.touch_location_length = 0
+      self.touch_location_length_max = 0
       return self:set_positions()
     end,
     __base = _base_0,
