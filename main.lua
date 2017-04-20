@@ -50,8 +50,9 @@ function vector_distance(a,b)
 end
 
 function set_screen_size(diff)
-  pixel_screen_height = pixel_screen_height + diff
   pixel_screen_width = pixel_screen_width + diff
+  -- pixel_screen_height = pixel_screen_height + diff
+  pixel_screen_height = floor(pixel_screen_width*(screen_width/screen_height))
   -- starfield_count = floor(40 * (pixel_screen_width*pixel_screen_height) / (128*128))
   game_screen_canvas = love.graphics.newCanvas(pixel_screen_width, pixel_screen_height)
   game_screen_canvas:setFilter("nearest", "nearest")
@@ -96,14 +97,17 @@ end
 --sect = sector.new()
 
 function love.load(arg)
-zoom_offset=Vector(0,0)
-time = 0
-screen_width, screen_height = 1366, 768
-pixel_screen_width, pixel_screen_height = 128, 128
--- pixel_screen_width, pixel_screen_height = 160, 160
--- pixel_screen_width, pixel_screen_height = 256, 256
-starfield_count = floor(40 * (pixel_screen_width*pixel_screen_height) / (128*128))
-screen_center = Vector(floor(pixel_screen_width/2),floor(pixel_screen_height/2))
+  zoom_offset=Vector(0,0)
+  time = 0
+  -- screen_width, screen_height = 1366, 768
+  screen_width = love.graphics.getWidth()
+  screen_height = love.graphics.getHeight()
+  pixel_screen_width = 128
+  pixel_screen_height = floor(pixel_screen_width*(screen_width/screen_height))
+  -- pixel_screen_width, pixel_screen_height = 160, 160
+  -- pixel_screen_width, pixel_screen_height = 256, 256
+  starfield_count = floor(40 * (pixel_screen_width*pixel_screen_height) / (128*128))
+  screen_center = Vector(floor(pixel_screen_width/2),floor(pixel_screen_height/2))
 
   screen_width = love.graphics.getWidth()
   screen_height = love.graphics.getHeight()
@@ -181,8 +185,8 @@ function love.draw()
     0,
     screen_height,
     deg270,
-    screen_height/pixel_screen_height, -- scale x
-    screen_height/pixel_screen_height -- scale y
+    screen_height/pixel_screen_width, -- scale y
+    screen_width/pixel_screen_height -- scale x
     -- 0, -- Origin offset (x-axis).
     -- 0, -- Origin offset (y-axis).
     -- 0, -- Shearing factor (x-axis).
@@ -409,7 +413,7 @@ function ship:buildship(seed,stype)
     turn_factor = turn_factor * .5
   end
   self.turn_rate=round(turn_factor*max(hp*-0.0470+11.4117,2))
-  self.turn_rate=90
+  self.turn_rate=180
   self.sprite_rows=rows
   self.sprite_columns=#ship_mask[1]
   self.transparent_color=ship_colors[4]
@@ -615,7 +619,7 @@ function ship:data(y)
   rectfill(0,y+34,127,y,0)
   rect(0,y+34,127,y,6)
   self:draw_sprite_rotated(Vector(104,y+17),0)
-  text(self.name.."\nmodel "..self.seed_value.."\nmax hull‡ "..self.max_hp.."\nmax thrust "..format(self.deltav*30.593514175).." g\nturn rate  "..self.turn_rate.." deg/sec",3,y+3)
+  text(self.name.."\nmodel "..self.seed_value.."\nmax hull "..self.max_hp.."\nmax thrust "..format(self.deltav*30.593514175).." g\nturn rate  "..self.turn_rate.." deg/sec",3,y+3)
 end
 
 function ship:is_visible(player_ship_pos)
@@ -873,7 +877,7 @@ function land_at_nearest_planet()
 end
 
 function takeoff()
-  -- sect:reset_planet_visibility()
+  sect:reset_planet_visibility()
   pilot:set_position_near_object(landed_planet)
   landed=false
   return false
@@ -997,7 +1001,7 @@ function stellar_object_is_visible(obj,ship_pos)
   return
     obj.screen_position.x+zoom_offset.x < pixel_screen_width+obj.radius and
     obj.screen_position.x+zoom_offset.x > 0-obj.radius and
-    obj.screen_position.y+zoom_offset.y < pixel_screen_width+obj.radius and
+    obj.screen_position.y+zoom_offset.y < pixel_screen_height+obj.radius and
     obj.screen_position.y+zoom_offset.y > 0-obj.radius
 end
 
@@ -1091,13 +1095,14 @@ end
 function is_offscreen(p,m)
   local margin=m or 0
   local mincoord=0-margin
-  local maxcoord=pixel_screen_width+margin
+  local max_x_coord=pixel_screen_width+margin
+  local max_y_coord=pixel_screen_height+margin
   local x,y=p.screen_position.x,p.screen_position.y
   local duration_up=p.duration<0
   if p.deltav then
     return duration_up
   else
-    return duration_up or x>maxcoord or x<mincoord or y>maxcoord or y<mincoord
+    return duration_up or x>max_x_coord or x<mincoord or y>max_y_coord or y<mincoord
   end
 end
 
@@ -1988,10 +1993,10 @@ function landed_update()
     if not landed_back_rendered then
       landed_back_rendered=p:render_planet(true,true)
     else
-      pos=1-pos
-      if pos==0 then
-        -- shift_sprite_sheet()
-      end
+      -- pos=1-pos
+      -- if pos==0 then
+      --   shift_sprite_sheet()
+      -- end
     end
   end
 end
@@ -1999,24 +2004,36 @@ end
 function render_landed_screen()
   -- cls()
   if landed_front_rendered and landed_back_rendered then
-    for i=1,96 do
-      local a,b=mtbl[i][1],mtbl[i][2]
-      pal()
-      local lw=ceil(b*cs[15][2])
-      for j=15,0,-1 do
-        if j==4 then
-          for ci=0,#dark_planet_colors-1 do
-            pal(ci,dark_planet_colors[ci+1])
-          end
-        end
-        if j<15 then lw=floor(a+b*cs[j+1][1])-floor(a+b*cs[j][1]) end
-        sspr(pos+j*7,i-1,7,1,floor(a+b*cs[j][1]),i+16,lw,1)
-      end
-    end
-    pal()
+    -- for i=1,96 do
+    --   local a,b=mtbl[i][1],mtbl[i][2]
+    --   pal()
+    --   local lw=ceil(b*cs[15][2])
+    --   for j=15,0,-1 do
+    --     if j==4 then
+    --       for ci=0,#dark_planet_colors-1 do
+    --         pal(ci,dark_planet_colors[ci+1])
+    --       end
+    --     end
+    --     if j<15 then lw=floor(a+b*cs[j+1][1])-floor(a+b*cs[j][1]) end
+    --     -- sspr(pos+j*7,i-1,7,1,floor(a+b*cs[j][1]),i+16,lw,1)
+    --   end
+    -- end
+    -- pal()
     text(landed_planet.planet_type.class_name,1,1)
   else
-    sspr(0,0,127,127,0,0)
+    love.graphics.draw(
+      landed_planet.planet_canvas,
+      0,
+      0
+      -- deg270,
+      -- screen_height/pixel_screen_height, -- scale x
+      -- screen_height/pixel_screen_height -- scale y
+      -- 0, -- Origin offset (x-axis).
+      -- 0, -- Origin offset (y-axis).
+      -- 0, -- Shearing factor (x-axis).
+      -- 0 -- Shearing factor (y-axis).
+    )
+    -- sspr(0,0,127,127,0,0)
     text("scanning for a\nsuitable landing site...",1,1,6)
   end
 end
@@ -2029,7 +2046,7 @@ function _update()
   end
 
   -- mbtn=stat(34)
-  if btn(8) then
+  if buttons.screen_touch_active then
     mbtn = 1
   else
     mbtn = 0
@@ -2098,7 +2115,7 @@ function _update()
     end
     -- zoom in
     if btn(7) then
-      if pixel_screen_height >= 128+4 then
+      if pixel_screen_width >= 128+4 then
       set_screen_size(-4)
       end
     end

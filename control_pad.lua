@@ -27,6 +27,8 @@ do
         separation = 150
       end
       local half_screen_height = floor(self.screen_height / 2)
+      local half_screen_width = floor(self.screen_width / 2)
+      self.screen_center = Vector(half_screen_width, half_screen_height)
       self.touch_location_length_max = half_screen_height
       local dpad = Vector(self.screen_height + 2 * separation, self.screen_height - 2 * separation)
       local ab = Vector(self.screen_height + 2 * separation, 2 * separation)
@@ -39,8 +41,7 @@ do
         ab + Vector(0, separation),
         ab + Vector(0, -separation),
         zoom + Vector(0, separation),
-        zoom + Vector(0, -separation),
-        Vector(half_screen_height, half_screen_height)
+        zoom + Vector(0, -separation)
       }
       do
         local _accum_0 = { }
@@ -61,8 +62,7 @@ do
         size,
         size,
         size,
-        size,
-        half_screen_height
+        size
       }
       do
         local _accum_0 = { }
@@ -95,6 +95,7 @@ do
       end
     end,
     get_presses = function(self, touches, delta_time)
+      local valid_button_touches = { }
       for bi, current_hold_time in ipairs(self.hold_time) do
         local is_pressed = false
         for ti, touch in ipairs(touches) do
@@ -103,11 +104,7 @@ do
           local touch_location_length = touch_location:length()
           if touch_location_length < self.sizes[bi] then
             is_pressed = true
-            if bi == #self.positions then
-              self.touch_location = touch_location:clone():rotate(-.25)
-              self.touch_location_angle = self.touch_location:angle()
-              self.touch_location_length = touch_location_length
-            end
+            table.insert(valid_button_touches, ti)
           end
         end
         if is_pressed then
@@ -138,6 +135,8 @@ do
       self.touch_location_angle = false
       self.touch_location_length = 0
       self.touch_location_length_max = 0
+      self.screen_touch_active = false
+      self.screen_center = Vector()
       return self:set_positions()
     end,
     __base = _base_0,
