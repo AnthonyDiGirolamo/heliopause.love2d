@@ -1,4 +1,4 @@
-## heliopause fo the love2d framework
+## heliopause for the love2d framework
 
 To get up and running on an android device:
 
