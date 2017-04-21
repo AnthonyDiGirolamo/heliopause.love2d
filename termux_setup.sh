@@ -1,6 +1,6 @@
 #!/data/data/com.termux/files/usr/bin/env bash
 apt update
-apt install termux-tools termux-api ruby ruby-ri luarocks lua
+apt install termux-tools termux-api ruby ruby-ri luarocks lua clang libllvm zip unzip liblua-dev liblua
 luarocks install moonscript
 luarocks install busted
 termux-fix-shebang $(which moon)
