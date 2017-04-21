@@ -1584,6 +1584,7 @@ function _init()
   music_tracks=split"n13,0,-1,"
   mousemodes=split"agamepad,two button mouse,stylus (pocketchip),"
   framecount,secondcount,mousemode,mmap_size_index,music_track=0,0,2,0,0
+  mbtn=0
   split_start=1
   btnv=split"x2031"
   ijks=nsplit"n1,0,0,1,1,0,|n1,0,0,1,0,1,|n0,0,1,1,0,1,|n0,0,1,0,1,1,|n0,1,0,0,1,1,|n0,1,0,1,1,0,|"

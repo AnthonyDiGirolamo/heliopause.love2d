@@ -104,7 +104,7 @@ do
           local touch_location_length = touch_location:length()
           if touch_location_length < self.sizes[bi] then
             is_pressed = true
-            table.insert(valid_button_touches, ti)
+            valid_button_touches[ti] = true
           end
         end
         if is_pressed then
@@ -113,6 +113,17 @@ do
         else
           self.hold_time[bi] = 0
           self.hold_frames[bi] = 0
+        end
+      end
+      self.screen_touch_active = false
+      for ti, touch in ipairs(touches) do
+        if not valid_button_touches[ti] then
+          self.screen_touch_active = true
+          local x, y = love.touch.getPosition(touch)
+          local touch_location = Vector(x, y) - self.screen_center
+          self.touch_location = touch_location:clone():rotate(-.25)
+          self.touch_location_angle = self.touch_location:angle()
+          self.touch_location_length = touch_location:length()
         end
       end
       return self.hold_time
@@ -132,7 +143,7 @@ do
       self.hold_time = { }
       self.hold_frames = { }
       self.touch_location = Vector()
-      self.touch_location_angle = false
+      self.touch_location_angle = 0
       self.touch_location_length = 0
       self.touch_location_length_max = 0
       self.screen_touch_active = false

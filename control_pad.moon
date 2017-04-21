@@ -7,7 +7,7 @@ class ControlPad
     @hold_time = {}
     @hold_frames = {}
     @touch_location = Vector!
-    @touch_location_angle = false
+    @touch_location_angle = 0
     @touch_location_length = 0
     @touch_location_length_max = 0
     @screen_touch_active = false
@@ -84,16 +84,22 @@ class ControlPad
         touch_location_length = touch_location\length!
         if touch_location_length < @sizes[bi]
           is_pressed = true
-          table.insert(valid_button_touches, ti)
+          valid_button_touches[ti] = true
       if is_pressed
         @hold_time[bi] += delta_time
         @hold_frames[bi] += 1
       else
         @hold_time[bi] = 0
         @hold_frames[bi] = 0
-    -- @touch_location = touch_location\clone()\rotate(-.25)
-    -- @touch_location_angle = @touch_location\angle!
-    -- @touch_location_length = touch_location_length
+    @screen_touch_active = false
+    for ti, touch in ipairs touches
+      if not valid_button_touches[ti]
+        @screen_touch_active = true
+        x, y = love.touch.getPosition(touch)
+        touch_location = Vector(x,y) - @screen_center
+        @touch_location = touch_location\clone()\rotate(-.25)
+        @touch_location_angle = @touch_location\angle!
+        @touch_location_length = touch_location\length!
     @hold_time
 
   btn: (number) =>
