@@ -25,7 +25,9 @@ class ControlPad
     "zoomin"
   }
 
-  set_positions: (size=150, separation=150) =>
+  set_positions: (size_ratio=.063, separation_ratio=.063) =>
+    size = size_ratio * @screen_width
+    separation = separation_ratio * @screen_width
     half_screen_height = floor(@screen_height/2)
     half_screen_width = floor(@screen_width/2)
     @screen_center = Vector(half_screen_width, half_screen_height)

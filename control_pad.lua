@@ -19,13 +19,15 @@ do
       "zoomout",
       "zoomin"
     },
-    set_positions = function(self, size, separation)
-      if size == nil then
-        size = 150
+    set_positions = function(self, size_ratio, separation_ratio)
+      if size_ratio == nil then
+        size_ratio = .063
       end
-      if separation == nil then
-        separation = 150
+      if separation_ratio == nil then
+        separation_ratio = .063
       end
+      local size = size_ratio * self.screen_width
+      local separation = separation_ratio * self.screen_width
       local half_screen_height = floor(self.screen_height / 2)
       local half_screen_width = floor(self.screen_width / 2)
       self.screen_center = Vector(half_screen_width, half_screen_height)
