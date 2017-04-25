@@ -250,6 +250,11 @@ function love.draw()
     table.insert(debug_messages, "touch location "..buttons.touch_location:__tostring())
   end
 
+  -- mi=buttons.touch_location_angle-.375
+  -- mi=floor(4*mi)+1
+  -- mi = mi % 4
+  -- table.insert(debug_messages, "mi: "..mi)
+
   for i, message in ipairs(debug_messages) do
     love.graphics.print(
       message,
@@ -2053,8 +2058,6 @@ function _update()
   else
     mbtn = 0
   end
-  local m=Vector(stat(32),stat(33))
-  mv=m-screen_center
 
   if not landed and btnp(4,0) then
     paused=not paused
@@ -2073,14 +2076,15 @@ function _update()
 
   if paused or landed then
 
-    mi=m-Vector(64,90)
-    mi.x = mi.x * .4
-    mi=mi:angle()-.375
-    mi=floor(4*mi)+1
-    mi = mi % 4
+    -- mi=buttons.touch_location-Vector(0,26)
+    -- mi.x = mi.x * .4
+    -- mi=mi:angle()-.375
+    -- mi=floor(4*mi)+1
+    -- mi = mi % 4
 
     for i=1,4 do
-      if btn(btnv[i]) or (mousemode>0 and mbtn==1 and i==mi+1 and secondcount>msel) then
+      -- if btn(btnv[i]) or (mousemode>0 and mbtn==1 and i==mi+1 and secondcount>msel) then
+      if btn(btnv[i]) then
         pressed=i
       end
       if pressed then
@@ -2298,7 +2302,8 @@ function _draw()
     menu()
   end
   note_draw()
-  if mousemode>0 then
-    (mv+screen_center):draw_circle(1,8)
-  end
+  -- draw cursor for mouse mode
+  -- if mousemode>0 then
+  --   buttons.touch_location:draw_circle(1,8)
+  -- end
 end

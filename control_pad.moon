@@ -26,8 +26,8 @@ class ControlPad
   }
 
   set_positions: (size_ratio=.063, separation_ratio=.063) =>
-    size = size_ratio * @screen_width
-    separation = separation_ratio * @screen_width
+    size = floor(size_ratio * @screen_width)
+    separation = floor(separation_ratio * @screen_width)
     half_screen_height = floor(@screen_height/2)
     half_screen_width = floor(@screen_width/2)
     @screen_center = Vector(half_screen_width, half_screen_height)
@@ -51,8 +51,6 @@ class ControlPad
       zoom + Vector(0, -separation) -- zoom in
     }
 
-    @positions = [p\round! for p in *@positions]
-
     @sizes = {
       size -- left
       size -- right
@@ -69,30 +67,32 @@ class ControlPad
 
   draw: =>
     for i, button in ipairs @positions
-      color(5)
-      -- unless i == #@positions
-      love.graphics.circle "line",
-        button.x, button.y,
-        @sizes[i]
+      if button
+        color(5)
+        -- unless i == #@positions
+        love.graphics.circle "line",
+          button.x, button.y,
+          @sizes[i]
 
 
   get_presses: (touches, delta_time) =>
     valid_button_touches = {}
     for bi, current_hold_time in ipairs @hold_time
-      is_pressed = false
-      for ti, touch in ipairs touches
-        x, y = love.touch.getPosition(touch)
-        touch_location = Vector(x,y) - @positions[bi]
-        touch_location_length = touch_location\length!
-        if touch_location_length < @sizes[bi]
-          is_pressed = true
-          valid_button_touches[ti] = true
-      if is_pressed
-        @hold_time[bi] += delta_time
-        @hold_frames[bi] += 1
-      else
-        @hold_time[bi] = 0
-        @hold_frames[bi] = 0
+      if @positions[bi]
+        is_pressed = false
+        for ti, touch in ipairs touches
+          x, y = love.touch.getPosition(touch)
+          touch_location = Vector(x,y) - @positions[bi]
+          touch_location_length = touch_location\length!
+          if touch_location_length < @sizes[bi]
+            is_pressed = true
+            valid_button_touches[ti] = true
+        if is_pressed
+          @hold_time[bi] += delta_time
+          @hold_frames[bi] += 1
+        else
+          @hold_time[bi] = 0
+          @hold_frames[bi] = 0
     @screen_touch_active = false
     for ti, touch in ipairs touches
       if not valid_button_touches[ti]
