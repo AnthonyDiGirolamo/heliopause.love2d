@@ -492,7 +492,7 @@ function ship:draw_sprite_rotated(offscreen_pos,angle)
           -- sfx(55,2)
           if not offscreen_pos then
             for i=1,random_int(4,2),1 do
-            add(particles,spark.new(pixel1,rotated_angle(random(.25)+.25)+self.velocity_vector,color,128+random_int(32)))
+            add(particles,spark.new(pixel1+zoom_offset,rotated_angle(random(.25)+.25)+self.velocity_vector,color,128+random_int(32)))
             end
           end
 
@@ -528,9 +528,9 @@ function ship:draw_sprite_rotated(offscreen_pos,angle)
               if not self.npc and old_hp_percent>.1 and self.hp_percent<=.1 then
                 note_add("thruster malfunction")
               end
-              if random()<.5 then
+              -- if random()<.5 then
                 add(particles,spark.new(pixel1,rotated_angle(random(2)+1)+self.velocity_vector,color,128))
-              end
+              -- end
               del(projectiles,projectile)
               self.sprite[x][y]=-5
               color=-5
@@ -1129,8 +1129,7 @@ function spark:update(shipvel)
 end
 
 function spark:draw(shipvel)
-  local screen_position=self.screen_position+zoom_offset
-  screen_position:draw_point(self.color)
+  self.screen_position:draw_point(self.color)
   self:update(shipvel)
 end
 
@@ -1215,7 +1214,7 @@ function thrustexhaust:draw(shipvel)
     end
   end
   if random()>.4 then
-    add(particles,spark.new(p0-zoom_offset,shipvel+(flicker*.25),c))
+    add(particles,spark.new(p0,shipvel+(flicker*.25),c))
   end
   self.screen_position:add(pv-shipvel)
   self.duration = self.duration - 1
