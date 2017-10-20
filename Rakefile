@@ -1,6 +1,6 @@
 source_files = Rake::FileList["*.lua", "shine/*.lua"]
 
-LOVEFILE = "heliopause.love"
+LOVEFILE = File.basename(File.expand_path('.')) + ".love"
 
 task default: [LOVEFILE, :launch]
 # file LOVEFILE => source_files do |t|

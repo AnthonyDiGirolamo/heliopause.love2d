@@ -109,8 +109,6 @@ function love.load(arg)
   starfield_count = floor(40 * (pixel_screen_width*pixel_screen_height) / (128*128))
   screen_center = Vector(floor(pixel_screen_width/2),floor(pixel_screen_height/2))
 
-  screen_width = love.graphics.getWidth()
-  screen_height = love.graphics.getHeight()
   buttons = ControlPad(screen_width, screen_height, true)
 
   pixelfont = love.graphics.newFont("PICO-8.ttf", 5)
@@ -1399,7 +1397,7 @@ function planet:render_planet(fullmap,renderback)
     -- pal()
     -- palt(0,false)
     -- palt(self.planet_type.transparent_color,true)
-    love.graphics.clear()
+    love.graphics.clear(0,0,0,0)
     -- color(pink)
     -- sset(0,0)
     -- sset(1,1)
@@ -1479,7 +1477,7 @@ function planet:render_planet(fullmap,renderback)
       for theta=theta_start,theta_end-theta_increment,theta_increment do
 
         local phasevalue=phase_values[self.x]
-        local c=0
+        local c=nil
 
         -- if fullmap or phasevalue==1 then
         if fullmap or
@@ -1517,8 +1515,16 @@ function planet:render_planet(fullmap,renderback)
             c=dark_planet_colors[c+1]
           end
         end
+
+        if xvalueindex<=#self.xvalues and
+          (self.x == self.radius-self.xvalues[xvalueindex]-1 or
+           self.x == self.radius+self.xvalues[xvalueindex]-1) then
+          c=black
+        end
+        if c ~= nil then
         color(c)
         sset(self.x,self.y)
+        end
         self.x = self.x + 1
       end
       self.x=0
