@@ -190,6 +190,10 @@ function love.keypressed(key)
   if key == "j" then
     load_sector()
   end
+  if key == "c" then
+    local planet, dist = nearest_planet()
+    add_npc(planet)
+  end
   -- if key == "s" then
   --   local screenshot = love.graphics.newScreenshot();
   --   screenshot:encode('png', os.time() .. '.png');
