@@ -52,7 +52,12 @@ end
 function set_screen_size(diff)
   pixel_screen_width = pixel_screen_width + diff
   -- pixel_screen_height = pixel_screen_height + diff
-  pixel_screen_height = floor(pixel_screen_width*(screen_width/screen_height))
+
+  -- portait
+  -- pixel_screen_height = floor(pixel_screen_width*(screen_width/screen_height))
+  -- landscape
+  pixel_screen_height = floor(pixel_screen_width*(screen_height/screen_width))
+
   -- starfield_count = floor(40 * (pixel_screen_width*pixel_screen_height) / (128*128))
   game_screen_canvas = love.graphics.newCanvas(pixel_screen_width, pixel_screen_height)
   game_screen_canvas:setFilter("nearest", "nearest")
@@ -60,15 +65,16 @@ function set_screen_size(diff)
   mmap_sizes[0] = floor(pixel_screen_width*.1875)
   setup_mmap()
   local offset=floor(diff/2)
+
   -- TODO: offset x & y should match screen aspect ratio
-  zoom_offset=zoom_offset+Vector(offset,1.5*offset)
+  zoom_offset=zoom_offset+Vector(offset,.75*offset)
   -- screen_center = Vector(floor(pixel_screen_width/2), floor(pixel_screen_height/2))
   -- pilot.screen_position=screen_center
   -- if diff > 0 then
     -- pilot.sector_position=pilot.sector_position-Vector(offset,offset)
 
   for index,star in ipairs(sect.starfield) do
-    star.position=star.position+Vector(offset,1.5*offset)
+    star.position=star.position+Vector(offset,.75*offset)
   end
 
     -- for index, p in ipairs(sect.planets) do
@@ -97,14 +103,25 @@ end
 ---- star_colors={{0xa,0xe,0xc,0xd,0x7,0x6},{0x9,0x8,0xd,0x1,0x6,0x5},{0x4,0x2,0x1,0x0,0x5,0x1},{0x7,0x6,0x7,0x6,0x7,0x6},{0x6,0x5,0x6,0x5,0x6,0x5},{0x5,0x1,0x5,0x1,0x5,0x1}}
 --sect = sector.new()
 
+local debugfont_size = 32
+
 function love.load(arg)
+
+  love.window.setMode(1920,1440)
+  love.window.setFullscreen(true)
   zoom_offset=Vector(0,0)
   time = 0
   -- screen_width, screen_height = 1366, 768
   screen_width = love.graphics.getWidth()
   screen_height = love.graphics.getHeight()
-  pixel_screen_width = 128
-  pixel_screen_height = floor(pixel_screen_width*(screen_width/screen_height))
+
+  -- -- portait
+  -- pixel_screen_width = 256
+  -- pixel_screen_height = floor(pixel_screen_width*(screen_width/screen_height))
+  -- landscape
+  pixel_screen_width = 256
+  pixel_screen_height = floor(pixel_screen_width*(screen_height/screen_width))
+
   -- pixel_screen_width, pixel_screen_height = 160, 160
   -- pixel_screen_width, pixel_screen_height = 256, 256
   starfield_count = floor(40 * (pixel_screen_width*pixel_screen_height) / (128*128))
@@ -117,7 +134,7 @@ function love.load(arg)
   -- debugfont = love.graphics.newFont(32)
   -- debugfont = love.graphics.newFont("small_font.ttf", 8)
   -- debugfont = love.graphics.newFont("PragmataProMono.ttf", 32)
-  debugfont = love.graphics.newFont(32)
+  debugfont = love.graphics.newFont("iosevka-ss08-regular.ttf", debugfont_size)
   love.graphics.setLineWidth(1)
   love.graphics.setLineStyle("rough")
   -- love.graphics.setLineStyle("smooth")
@@ -136,6 +153,10 @@ function love.load(arg)
   -- post_effect = shine.scanlines()
   -- post_effect.opacity = 0.5 -- affects both vignette and film grain
 
+  love.filesystem.setIdentity('heliopause')
+  love.keyboard.setTextInput(true)
+
+
   _init()
 end
 
@@ -151,16 +172,45 @@ function love.update(dt)
   _update()
 end
 
+local deg90 = math.pi*0.5
+local deg180 = math.pi
 local deg270 = math.pi*1.5
 local debug_messages
 
+function love.textinput(t)
+end
+
+function love.keypressed(key)
+  if key == "escape" then
+    love.event.quit()
+  end
+  if key == "p" then
+    pilot:buildship()
+  end
+  if key == "j" then
+    load_sector()
+  end
+  -- if key == "s" then
+  --   local screenshot = love.graphics.newScreenshot();
+  --   screenshot:encode('png', os.time() .. '.png');
+  -- end
+
+  if key == "," then
+    paused=not paused
+    if paused then
+      -- sfx(51,2)
+      main_menu()
+    end
+  end
+
+end
 
 function love.draw()
 
   love.graphics.setCanvas(game_screen_canvas)
   love.graphics.clear()
   love.graphics.setBlendMode("alpha")
-  love.graphics.setColor(255, 255, 255, 255)
+  love.graphics.setColor(0, 0, 0, 255)
   love.graphics.setFont(pixelfont)
 
   debug_messages = {
@@ -168,7 +218,8 @@ function love.draw()
     ("dt:      " .. love.timer.getDelta()),
     -- ("time:    " .. time),
     -- ("os.time: " .. os.time()),
-    ("screen:  " .. screen_width.." x "..screen_height),
+    ("Screen: [" .. screen_width.." x "..screen_height.."]"),
+    ("Canvas: [" .. pixel_screen_width.." x "..pixel_screen_height.."]"),
   }
 
   _draw()
@@ -179,19 +230,34 @@ function love.draw()
 
   -- post_effect:draw(function()
 
-  -- top portait
+  -- laptop
   love.graphics.draw(
     game_screen_canvas,
     0,
-    screen_height,
-    deg270,
-    screen_height/pixel_screen_width, -- scale y
-    screen_width/pixel_screen_height -- scale x
+    0,
+    0,
+    screen_width/pixel_screen_width, -- scale x
+    screen_height/pixel_screen_height -- scale y
     -- 0, -- Origin offset (x-axis).
     -- 0, -- Origin offset (y-axis).
     -- 0, -- Shearing factor (x-axis).
     -- 0 -- Shearing factor (y-axis).
   ) -- scale y
+
+  -- -- top portait
+  -- love.graphics.draw(
+  --   game_screen_canvas,
+  --   0,
+  --   screen_height,
+  --   deg270,
+  --   screen_height/pixel_screen_width, -- scale y
+  --   screen_width/pixel_screen_height -- scale x
+  --   -- 0, -- Origin offset (x-axis).
+  --   -- 0, -- Origin offset (y-axis).
+  --   -- 0, -- Shearing factor (x-axis).
+  --   -- 0 -- Shearing factor (y-axis).
+  -- ) -- scale y
+
 
   -- -- center landscape
   -- love.graphics.draw(
@@ -255,11 +321,21 @@ function love.draw()
   -- table.insert(debug_messages, "mi: "..mi)
 
   for i, message in ipairs(debug_messages) do
+
+    -- -- portait 270
+    -- love.graphics.print(
+    --   message,
+    --   i*debugfont_size+80, --screen_height,
+    --   screen_height-50,
+    --   deg270)
+
+    -- portait 270
     love.graphics.print(
       message,
-      i*36+80, --screen_height,
-      screen_height-50,
-      deg270)
+      50,
+      i*debugfont_size+80,
+      0)
+
   end
 
 end
@@ -1550,11 +1626,13 @@ end
 
 function add_npc(pos,pirate)
   local t=random_int(#ship_types)+1
+
   if pirate or random()<.2 then
     t=random_int(3,1)
     pirate=true
     pirates = pirates + 1
   end
+
   local npc=ship.new(pirate):buildship(nil,t)
   npc:set_position_near_object(pos)
   npc:rotate(random_int(360))
@@ -1577,14 +1655,21 @@ function load_sector()
   npcships={}
   shipyard={}
   projectiles={}
+
   for index, p in ipairs(sect.planets) do
     for i=1,random_int(4) do
       add_npc(p)
     end
   end
+
   if pirates==0 then
     add_npc(sect.planets[2],true)
   end
+
+  -- for i=1,5 do
+  --   add_npc(pilot,false)
+  -- end
+
   return true
 end
 
@@ -2087,14 +2172,14 @@ function _update()
     -- mi=mi:angle()-.375
     -- mi=floor(4*mi)+1
     -- mi = mi % 4
+    keys = {"w", "a", "r", "s"}
 
     for i=1,4 do
-      -- if btn(btnv[i]) or (mousemode>0 and mbtn==1 and i==mi+1 and secondcount>msel) then
-      if btn(btnv[i]) then
+      if btn(btnv[i]) or love.keyboard.isDown(keys[i]) then
         pressed=i
       end
       if pressed then
-        if pressed==i and not btn(btnv[i]) then
+        if pressed==i and not (btn(btnv[i]) or love.keyboard.isDown(keys[i])) then
           pressed=nil
           msel=secondcount
           call_option(i)
@@ -2113,7 +2198,8 @@ function _update()
     if (mousemode==1 and mbtn>1)
       -- or (mousemode==2 and mbtn>0 and mv:length()>38)
       or (mousemode==2 and mbtn>0 and buttons.touch_location_length>.60*buttons.touch_location_length_max)
-    or btn(2,0) then
+      or btn(2,0)
+    or love.keyboard.isDown("w") then
       pilot:apply_thrust()
     else
       if pilot.accelerating and no_orders then
@@ -2122,23 +2208,24 @@ function _update()
     end
 
     -- zoom out
-    if btn(6) then
+    if btn(6) or love.keyboard.isDown("-")  then
       set_screen_size(4)
       -- pilot:buildship()
     end
     -- zoom in
-    if btn(7) then
+    if btn(7) or love.keyboard.isDown("=") then
       if pixel_screen_width >= 128+4 then
       set_screen_size(-4)
       end
     end
 
-
-    if btn(0,0) then pilot:turn_left() end
-    if btn(1,0) then pilot:turn_right() end
-    if btn(3,0) then pilot:reverse_direction() end
-    if btn(5,0)
-    or (mousemode==1 and mbtn==1 or mbtn==3) then pilot:fire_weapon() end
+    if btn(0,0) or love.keyboard.isDown("a") then pilot:turn_left() end
+    if btn(1,0) or love.keyboard.isDown("s") then pilot:turn_right() end
+    if btn(3,0) or love.keyboard.isDown("r") then pilot:reverse_direction() end
+    if btn(5,0) or love.keyboard.isDown("n")
+    or (mousemode==1 and mbtn==1 or mbtn==3) then
+      pilot:fire_weapon()
+    end
 
     for index, p in ipairs(projectiles) do
       p:update(pilot.velocity_vector)
