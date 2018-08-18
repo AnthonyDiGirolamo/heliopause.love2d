@@ -60,14 +60,15 @@ function set_screen_size(diff)
   mmap_sizes[0] = floor(pixel_screen_width*.1875)
   setup_mmap()
   local offset=floor(diff/2)
-  zoom_offset=zoom_offset+Vector(offset,offset)
+  -- TODO: offset x & y should match screen aspect ratio
+  zoom_offset=zoom_offset+Vector(offset,1.5*offset)
   -- screen_center = Vector(floor(pixel_screen_width/2), floor(pixel_screen_height/2))
   -- pilot.screen_position=screen_center
   -- if diff > 0 then
     -- pilot.sector_position=pilot.sector_position-Vector(offset,offset)
 
   for index,star in ipairs(sect.starfield) do
-    star.position=star.position+Vector(offset,offset)
+    star.position=star.position+Vector(offset,1.5*offset)
   end
 
     -- for index, p in ipairs(sect.planets) do
@@ -2123,6 +2124,7 @@ function _update()
     -- zoom out
     if btn(6) then
       set_screen_size(4)
+      -- pilot:buildship()
     end
     -- zoom in
     if btn(7) then
