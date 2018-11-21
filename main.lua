@@ -66,37 +66,85 @@ function GameScreen.new(width, height)
       integer_only_zoom = true,
       pixel_width = width,
       pixel_height = height,
+      screen_center = Vector(floor(width/2),floor(height/2))
     },
     GameScreen)
 end
+
+function GameScreen:draw_canvas()
+  if self:rotation_is_landscape() then
+    love.graphics.draw(
+      game_screen_canvas,
+      0,
+      0,
+      self.rotation,
+      game_screen.screen_width/game_screen.pixel_width, -- scale x
+      game_screen.screen_height/game_screen.pixel_height -- scale y
+      -- 0, -- Origin offset (x-axis).
+      -- 0, -- Origin offset (y-axis).
+      -- 0, -- Shearing factor (x-axis).
+      -- 0 -- Shearing factor (y-axis).
+    )
+  else
+    -- if self:rotation_is_portrait() then
+    love.graphics.draw(
+      game_screen_canvas,
+      0,
+      game_screen.screen_height,
+      self.rotation,
+      game_screen.screen_height/game_screen.pixel_width, -- scale x
+      game_screen.screen_width/game_screen.pixel_height -- scale y
+      -- 0, -- Origin offset (x-axis).
+      -- 0, -- Origin offset (y-axis).
+      -- 0, -- Shearing factor (x-axis).
+      -- 0 -- Shearing factor (y-axis).
+    )
+  end
+
+end
+
 
 function GameScreen:set_pixel_screen_size()
   game_screen_canvas = love.graphics.newCanvas(
     self.pixel_width, self.pixel_height)
 
+  self.screen_center.x = floor(self.pixel_width/2)
+  self.screen_center.y = floor(self.pixel_height/2)
+
   game_screen_canvas:setFilter("nearest", "nearest")
 
-  mmap_sizes = {floor(self.pixel_width*.375),
-                self.pixel_width,
-                0}
+  mmap_sizes = {
+    floor(self.pixel_width*.375),
+    self.pixel_width,
+    0
+  }
   mmap_sizes[0] = floor(self.pixel_width*.1875)
   setup_mmap()
 end
 
 function GameScreen:rotate()
   if self.rotation == 0 then
-    -- portrait reversed
-    self.rotation = deg90
-  elseif self.rotation == deg90 then
-    -- landscape reversed
-    self.rotation = deg180
-  elseif self.rotation == deg180 then
     -- portrait
     self.rotation = deg270
   elseif self.rotation == deg270 then
     -- landscape
     self.rotation = 0
   end
+  -- if self.rotation == 0 then
+  --   -- portrait reversed
+  --   self.rotation = deg90
+  -- elseif self.rotation == deg90 then
+  --   -- landscape reversed
+  --   self.rotation = deg180
+  -- elseif self.rotation == deg180 then
+  --   -- portrait
+  --   self.rotation = deg270
+  -- elseif self.rotation == deg270 then
+  --   -- landscape
+  --   self.rotation = 0
+  -- end
+  self.pixel_height, self.pixel_width = self.pixel_width, self.pixel_height
+  self:canvas_size_add()
 end
 
 function GameScreen:rotation_is_landscape()
@@ -119,26 +167,32 @@ function GameScreen:zoom_in()
   end
 end
 
-function GameScreen:canvas_size_add(diff)
+function GameScreen:canvas_size_add(amount)
+  local diff = amount or 0
+
   self.pixel_width = self.pixel_width + diff
   -- pixel_height = pixel_height + diff
 
   -- portait
-  self.pixel_height = floor(self.pixel_width*(self.screen_width/self.screen_height))
-  -- landscape
-  -- self.pixel_height = floor(self.pixel_width*(self.screen_height/self.screen_width))
+  if self:rotation_is_landscape() then
+    self.pixel_height = floor(self.pixel_width*(self.screen_height/self.screen_width))
+  else
+    self.pixel_height = floor(self.pixel_width*(self.screen_width/self.screen_height))
+  end
+
 
   -- starfield_count = floor(40 * (pixel_width*pixel_height) / (128*128))
 
   -- update canvas
   self:set_pixel_screen_size()
+
   local offset=floor(diff/2)
 
   -- TODO: offset x & y should match screen aspect ratio
   -- zoom_offset=zoom_offset+Vector(offset,.75*offset)
   zoom_offset=zoom_offset+Vector(offset,(self.pixel_width/self.pixel_height)*offset)
-  -- screen_center = Vector(floor(pixel_width/2), floor(pixel_height/2))
-  -- pilot.screen_position=screen_center
+  -- game_screen.screen_center = Vector(floor(pixel_width/2), floor(pixel_height/2))
+  -- pilot.screen_position=game_screen.screen_center
   -- if diff > 0 then
     -- pilot.sector_position=pilot.sector_position-Vector(offset,offset)
 
@@ -201,11 +255,11 @@ function love.load(arg)
   -- landscape
   -- game_screen.pixel_width = 256
   -- game_screen.pixel_height = floor(game_screen.pixel_width*(game_screen.screen_height/game_screen.screen_width))
+  game_screen:set_pixel_screen_size()
 
   -- game_screen.pixel_width, game_screen.pixel_height = 160, 160
   -- game_screen.pixel_width, game_screen.pixel_height = 256, 256
   starfield_count = floor(40 * (game_screen.pixel_width*game_screen.pixel_height) / (128*128))
-  screen_center = Vector(floor(game_screen.pixel_width/2),floor(game_screen.pixel_height/2))
 
   buttons = ControlPad(game_screen.screen_width, game_screen.screen_height, true)
 
@@ -312,35 +366,7 @@ function love.draw()
 
   -- post_effect:draw(function()
 
-  -- -- laptop
-  -- love.graphics.draw(
-  --   game_screen_canvas,
-  --   0,
-  --   0,
-  --   0,
-  --   game_screen.screen_width/game_screen.pixel_width, -- scale x
-  --   game_screen.screen_height/game_screen.pixel_height -- scale y
-  --   -- 0, -- Origin offset (x-axis).
-  --   -- 0, -- Origin offset (y-axis).
-  --   -- 0, -- Shearing factor (x-axis).
-  --   -- 0 -- Shearing factor (y-axis).
-  -- ) -- scale y
-
-  -- top portait
-  love.graphics.draw(
-    game_screen_canvas,
-    0,
-    game_screen.screen_height,
-    deg270,
-    floor(game_screen.screen_height/game_screen.pixel_width), -- scale y
-    floor(game_screen.screen_width/game_screen.pixel_height) -- scale x
-    -- 0, -- Origin offset (x-axis).
-    -- 0, -- Origin offset (y-axis).
-    -- 0, -- Shearing factor (x-axis).
-    -- 0 -- Shearing factor (y-axis).
-  ) -- scale y
-
-
+  game_screen:draw_canvas()
   -- -- center landscape
   -- love.graphics.draw(
   --   game_screen_canvas,
@@ -478,7 +504,7 @@ function ship.new(h)
   local shp={
     npc=false,
     hostile=h,
-    screen_position=screen_center,
+    screen_position=game_screen.screen_center,
     sector_position=Vector(),
     cur_deltav=0,
     cur_gees=0,
@@ -758,7 +784,7 @@ function ship:draw()
   -- text((self.heading).." heading", 0,35)
   -- text((self.velocity_angle).." vel-a", 0,42)
   -- text((self.velocity_angle_opposite).." vel-a-o", 0,49)
-  self:draw_sprite_rotated() --screen_center+zoom_offset)
+  self:draw_sprite_rotated() --game_screen.screen_center+zoom_offset)
 
   table.insert(debug_messages, "Sector Position: "..self.sector_position:__tostring())
   table.insert(debug_messages, "Zoom offset: "..zoom_offset:__tostring())
@@ -787,7 +813,7 @@ end
 
 function ship:is_visible(player_ship_pos)
   local size=round(self.sprite_rows/2)
-  local screen_position=(self.sector_position-player_ship_pos+screen_center):round()
+  local screen_position=(self.sector_position-player_ship_pos+game_screen.screen_center):round()
   self.screen_position=screen_position
   return screen_position.x+zoom_offset.x <game_screen.pixel_width+size and
          screen_position.x+zoom_offset.x >0-size and
@@ -1160,7 +1186,7 @@ function sun:draw(ship_pos)
 end
 
 function stellar_object_is_visible(obj,ship_pos)
-  obj.screen_position=obj.sector_position-ship_pos+screen_center
+  obj.screen_position=obj.sector_position-ship_pos+game_screen.screen_center
   return
     obj.screen_position.x+zoom_offset.x < game_screen.pixel_width+obj.radius and
     obj.screen_position.x+zoom_offset.x > 0-obj.radius and
@@ -1821,7 +1847,7 @@ end
 
 function setup_mmap()
   mmap_size=mmap_sizes[mmap_size_index]
-  if mmap_size>0 then
+  if mmap_size and mmap_size>0 then
     mmap_size_halved=mmap_size/2
     mmap_offset=Vector(game_screen.pixel_width-2-mmap_size_halved,mmap_size_halved+1)
   end
@@ -1861,7 +1887,7 @@ function draw_mmap()
     if y>x then x=y end
     mmap_denominator=min(6,ceil(x/5000))*5000/mmap_size_halved
     for index, obj in ipairs(sect.planets) do
-      local p=obj.sector_position+screen_center
+      local p=obj.sector_position+game_screen.screen_center
       if obj.planet_type then p:add(Vector(-obj.radius,-obj.radius)) end
       p=p/mmap_denominator+mmap_offset
       if mmap_size>100 then
@@ -2299,7 +2325,8 @@ function _update()
       game_screen:zoom_in()
     end
     -- rotate
-    if btn(8) or love.keyboard.isDown("r") then
+    if btnp(8) or love.keyboard.isDown("r") then
+      game_screen:rotate()
     end
 
     if btn(0,0) or love.keyboard.isDown("a") then pilot:turn_left() end
@@ -2403,7 +2430,7 @@ function render_game_screen()
         local hull_radius=floor(targeted_ship.sprite_rows*.5)
         local d=rotated_vector((targeted_ship.screen_position-player_screen_position):angle())
         local draw_dist_from_center = floor(game_screen.pixel_width/2-8)
-        last_offscreen_pos=d*(draw_dist_from_center-hull_radius)+screen_center
+        last_offscreen_pos=d*(draw_dist_from_center-hull_radius)+game_screen.screen_center
         local p2=last_offscreen_pos:clone():add(Vector(-4*(#distance/2))):add(zoom_offset)
         targeted_ship:draw_sprite_rotated(last_offscreen_pos)
         if p2.y>floor(game_screen.pixel_width/2-1) then
