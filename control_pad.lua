@@ -17,7 +17,8 @@ do
       "fire",
       "pause",
       "zoomout",
-      "zoomin"
+      "zoomin",
+      "rotate"
     },
     set_positions = function(self, size_ratio, separation_ratio)
       if size_ratio == nil then
@@ -43,7 +44,8 @@ do
         ab + Vector(0, separation),
         ab + Vector(0, -separation),
         zoom + Vector(0, separation),
-        zoom + Vector(0, -separation)
+        zoom + Vector(0, -separation),
+        zoom + Vector(0, -3 * separation)
       }
       self.sizes = {
         size,
@@ -53,7 +55,8 @@ do
         size,
         size,
         size,
-        size
+        size,
+        size / 2
       }
       do
         local _accum_0 = { }

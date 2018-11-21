@@ -23,6 +23,7 @@ class ControlPad
     "pause"
     "zoomout"
     "zoomin"
+    "rotate"
   }
 
   set_positions: (size_ratio=.063, separation_ratio=.063) =>
@@ -49,6 +50,7 @@ class ControlPad
       ab + Vector(0, -separation)   -- pause
       zoom + Vector(0, separation)  -- zoom out
       zoom + Vector(0, -separation) -- zoom in
+      zoom + Vector(0, -3*separation) -- rotate
     }
 
     @sizes = {
@@ -60,6 +62,7 @@ class ControlPad
       size -- pause
       size -- zoom out
       size -- zoom in
+      size/2 -- rotate
     }
     @hold_time = [0 for p in *@positions]
     @hold_frames = [0 for p in *@positions]

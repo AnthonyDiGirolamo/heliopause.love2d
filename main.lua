@@ -1,4 +1,4 @@
--- debug = true
+debug = true
 local shine = require("shine")
 local lume = require("lume")
 
@@ -45,18 +45,115 @@ indigo      = 13
 pink        = 14
 peach       = 15
 
+local deg90 = math.pi*0.5
+local deg180 = math.pi
+local deg270 = math.pi*1.5
+local debug_messages
+
 function vector_distance(a,b)
   return (b-a):length()
 end
+
+
+GameSettings={}
+GameSettings.__index=GameSettings
+function GameSettings.new(width, height)
+  return setmetatable(
+    {
+      screen_width = width,
+      screen_height = height,
+      screen_rotation = deg270,
+      integer_only_zoom = true,
+      pixel_screen_width = width,
+      pixel_screen_height = height,
+    },
+    GameSettings)
+end
+
+function GameSettings:set_pixel_screen_size()
+  game_screen_canvas = love.graphics.newCanvas(
+    self.pixel_screen_width, self.pixel_screen_height)
+
+  game_screen_canvas:setFilter("nearest", "nearest")
+
+  mmap_sizes = {floor(self.pixel_screen_width*.375),
+                self.pixel_screen_width,
+                0}
+  mmap_sizes[0] = floor(self.pixel_screen_width*.1875)
+  setup_mmap()
+end
+
+function GameSettings:rotate()
+  if self.rotation == 0 then
+    -- portrait reversed
+    self.rotation = deg90
+  elseif self.rotation == deg90 then
+    -- landscape reversed
+    self.rotation = deg180
+  elseif self.rotation == deg180 then
+    -- portrait
+    self.rotation = deg270
+  elseif self.rotation == deg270 then
+    -- landscape
+    self.rotation = 0
+  end
+end
+
+function GameSettings:zoom_in()
+end
+
+function GameSettings:zoom_out()
+end
+
+function GameSettings:zoom(zoom_amount)
+  self.pixel_screen_width = self.pixel_screen_width + zoom_amount
+  -- pixel_screen_height = pixel_screen_height + diff
+
+  -- portait
+  self.pixel_screen_height = floor(self.pixel_screen_width*(self.screen_width/self.screen_height))
+  -- landscape
+  -- self.pixel_screen_height = floor(self.pixel_screen_width*(self.screen_height/self.screen_width))
+
+  -- starfield_count = floor(40 * (pixel_screen_width*pixel_screen_height) / (128*128))
+
+  -- update canvas
+  self:set_pixel_screen_size()
+  local offset=floor(diff/2)
+
+  -- TODO: offset x & y should match screen aspect ratio
+  -- zoom_offset=zoom_offset+Vector(offset,.75*offset)
+  zoom_offset=zoom_offset+Vector(offset,(self.pixel_screen_width/self.pixel_screen_height)*offset)
+  -- screen_center = Vector(floor(pixel_screen_width/2), floor(pixel_screen_height/2))
+  -- pilot.screen_position=screen_center
+  -- if diff > 0 then
+    -- pilot.sector_position=pilot.sector_position-Vector(offset,offset)
+
+  for index,star in ipairs(sect.starfield) do
+    star.position=star.position+Vector(offset,.75*offset)
+  end
+
+    -- for index, p in ipairs(sect.planets) do
+    --   p.sector_position=p.sector_position-Vector(offset,offset)
+    -- end
+    -- for index, s in ipairs(npcships) do
+    --   s.sector_position=s.sector_position-Vector(offset,offset)
+    -- end
+  -- end
+end
+
+settings = GameSettings.new(
+  love.graphics.getWidth(),
+  love.graphics.getHeight()
+)
 
 function set_screen_size(diff)
   pixel_screen_width = pixel_screen_width + diff
   -- pixel_screen_height = pixel_screen_height + diff
 
   -- portait
-  -- pixel_screen_height = floor(pixel_screen_width*(screen_width/screen_height))
+  pixel_screen_height = floor(pixel_screen_width*(screen_width/screen_height))
   -- landscape
-  pixel_screen_height = floor(pixel_screen_width*(screen_height/screen_width))
+  -- pixel_screen_height = floor(pixel_screen_width*(screen_height/screen_width))
 
   -- starfield_count = floor(40 * (pixel_screen_width*pixel_screen_height) / (128*128))
   game_screen_canvas = love.graphics.newCanvas(pixel_screen_width, pixel_screen_height)
@@ -67,7 +164,8 @@ function set_screen_size(diff)
   local offset=floor(diff/2)
 
   -- TODO: offset x & y should match screen aspect ratio
-  zoom_offset=zoom_offset+Vector(offset,.75*offset)
+  -- zoom_offset=zoom_offset+Vector(offset,.75*offset)
+  zoom_offset=zoom_offset+Vector(offset,(pixel_screen_width/pixel_screen_height)*offset)
   -- screen_center = Vector(floor(pixel_screen_width/2), floor(pixel_screen_height/2))
   -- pilot.screen_position=screen_center
   -- if diff > 0 then
@@ -103,24 +201,30 @@ end
 ---- star_colors={{0xa,0xe,0xc,0xd,0x7,0x6},{0x9,0x8,0xd,0x1,0x6,0x5},{0x4,0x2,0x1,0x0,0x5,0x1},{0x7,0x6,0x7,0x6,0x7,0x6},{0x6,0x5,0x6,0x5,0x6,0x5},{0x5,0x1,0x5,0x1,0x5,0x1}}
 --sect = sector.new()
 
-local debugfont_size = 32
+local debugfont_size = 10
 
 function love.load(arg)
 
-  love.window.setMode(1920,1440)
+  -- love.window.setMode(1920,1440)
   love.window.setFullscreen(true)
   zoom_offset=Vector(0,0)
   time = 0
   -- screen_width, screen_height = 1366, 768
+
+  -- screen_width = love.graphics.setWidth(1366)
+  -- screen_height = love.graphics.setHeight(768)
+
   screen_width = love.graphics.getWidth()
   screen_height = love.graphics.getHeight()
 
-  -- -- portait
-  -- pixel_screen_width = 256
-  -- pixel_screen_height = floor(pixel_screen_width*(screen_width/screen_height))
+
+  -- portait
+  pixel_screen_width = 160
+  pixel_screen_height = floor(pixel_screen_width*(screen_width/screen_height))
+
   -- landscape
-  pixel_screen_width = 256
-  pixel_screen_height = floor(pixel_screen_width*(screen_height/screen_width))
+  -- pixel_screen_width = 256
+  -- pixel_screen_height = floor(pixel_screen_width*(screen_height/screen_width))
 
   -- pixel_screen_width, pixel_screen_height = 160, 160
   -- pixel_screen_width, pixel_screen_height = 256, 256
@@ -131,10 +235,13 @@ function love.load(arg)
 
   pixelfont = love.graphics.newFont("PICO-8.ttf", 5)
   -- pixelfont = love.graphics.newFont("Droid Sans Mono.ttf", 12)
-  -- debugfont = love.graphics.newFont(32)
+
+  debugfont = love.graphics.newFont(debugfont_size)
   -- debugfont = love.graphics.newFont("small_font.ttf", 8)
   -- debugfont = love.graphics.newFont("PragmataProMono.ttf", 32)
-  debugfont = love.graphics.newFont("iosevka-ss08-regular.ttf", debugfont_size)
+  -- debugfont = love.graphics.newFont("iosevka-ss08-regular.ttf", debugfont_size)
+
+  love.graphics.setDefaultFilter("nearest")
   love.graphics.setLineWidth(1)
   love.graphics.setLineStyle("rough")
   -- love.graphics.setLineStyle("smooth")
@@ -163,19 +270,14 @@ end
 local touches
 function love.update(dt)
   time = time + dt
-  screen_width = love.graphics.getWidth()
-  screen_height = love.graphics.getHeight()
+  -- screen_width = love.graphics.getWidth()
+  -- screen_height = love.graphics.getHeight()
 
   touches = love.touch.getTouches()
   buttons:get_presses(touches, love.timer.getDelta())
 
   _update()
 end
-
-local deg90 = math.pi*0.5
-local deg180 = math.pi
-local deg270 = math.pi*1.5
-local debug_messages
 
 function love.textinput(t)
 end
@@ -234,33 +336,33 @@ function love.draw()
 
   -- post_effect:draw(function()
 
-  -- laptop
-  love.graphics.draw(
-    game_screen_canvas,
-    0,
-    0,
-    0,
-    screen_width/pixel_screen_width, -- scale x
-    screen_height/pixel_screen_height -- scale y
-    -- 0, -- Origin offset (x-axis).
-    -- 0, -- Origin offset (y-axis).
-    -- 0, -- Shearing factor (x-axis).
-    -- 0 -- Shearing factor (y-axis).
-  ) -- scale y
-
-  -- -- top portait
+  -- -- laptop
   -- love.graphics.draw(
   --   game_screen_canvas,
   --   0,
-  --   screen_height,
-  --   deg270,
-  --   screen_height/pixel_screen_width, -- scale y
-  --   screen_width/pixel_screen_height -- scale x
+  --   0,
+  --   0,
+  --   screen_width/pixel_screen_width, -- scale x
+  --   screen_height/pixel_screen_height -- scale y
   --   -- 0, -- Origin offset (x-axis).
   --   -- 0, -- Origin offset (y-axis).
   --   -- 0, -- Shearing factor (x-axis).
   --   -- 0 -- Shearing factor (y-axis).
   -- ) -- scale y
+
+  -- top portait
+  love.graphics.draw(
+    game_screen_canvas,
+    0,
+    screen_height,
+    deg270,
+    floor(screen_height/pixel_screen_width), -- scale y
+    floor(screen_width/pixel_screen_height) -- scale x
+    -- 0, -- Origin offset (x-axis).
+    -- 0, -- Origin offset (y-axis).
+    -- 0, -- Shearing factor (x-axis).
+    -- 0 -- Shearing factor (y-axis).
+  ) -- scale y
 
 
   -- -- center landscape
@@ -326,19 +428,19 @@ function love.draw()
 
   for i, message in ipairs(debug_messages) do
 
-    -- -- portait 270
-    -- love.graphics.print(
-    --   message,
-    --   i*debugfont_size+80, --screen_height,
-    --   screen_height-50,
-    --   deg270)
-
     -- portait 270
     love.graphics.print(
       message,
-      50,
-      i*debugfont_size+80,
-      0)
+      i*debugfont_size+40, --screen_height,
+      screen_height-50,
+      deg270)
+
+    -- -- landscape
+    -- love.graphics.print(
+    --   message,
+    --   50,
+    --   i*debugfont_size+80,
+    --   0)
 
   end
 
@@ -2221,6 +2323,9 @@ function _update()
       if pixel_screen_width >= 128+4 then
       set_screen_size(-4)
       end
+    end
+    -- rotate
+    if btn(8) or love.keyboard.isDown("r") then
     end
 
     if btn(0,0) or love.keyboard.isDown("a") then pilot:turn_left() end
