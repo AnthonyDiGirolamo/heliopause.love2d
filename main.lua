@@ -62,7 +62,7 @@ function GameSettings.new(width, height)
     {
       screen_width = width,
       screen_height = height,
-      screen_rotation = deg270,
+      rotation = deg270,
       integer_only_zoom = true,
       pixel_screen_width = width,
       pixel_screen_height = height,
@@ -99,14 +99,28 @@ function GameSettings:rotate()
   end
 end
 
-function GameSettings:zoom_in()
+function GameSettings:rotation_is_landscape()
+  return self.rotation == 0 or self.rotation == 180
+end
+
+function GameSettings:rotation_is_portrait()
+  return self.rotation == deg270 or self.rotation == 90
 end
 
 function GameSettings:zoom_out()
+  if self:rotation_is_portrait() and self.pixel_screen_height <= self.screen_width - 4 then
+    self:canvas_size_add(4)
+  end
 end
 
-function GameSettings:zoom(zoom_amount)
-  self.pixel_screen_width = self.pixel_screen_width + zoom_amount
+function GameSettings:zoom_in()
+  if self:rotation_is_portrait() and self.pixel_screen_width >= 128+4 then
+    self:canvas_size_add(-4)
+  end
+end
+
+function GameSettings:canvas_size_add(diff)
+  self.pixel_screen_width = self.pixel_screen_width + diff
   -- pixel_screen_height = pixel_screen_height + diff
 
   -- portait
@@ -146,44 +160,6 @@ settings = GameSettings.new(
   love.graphics.getHeight()
 )
 
-function set_screen_size(diff)
-  pixel_screen_width = pixel_screen_width + diff
-  -- pixel_screen_height = pixel_screen_height + diff
-
-  -- portait
-  pixel_screen_height = floor(pixel_screen_width*(screen_width/screen_height))
-  -- landscape
-  -- pixel_screen_height = floor(pixel_screen_width*(screen_height/screen_width))
-
-  -- starfield_count = floor(40 * (pixel_screen_width*pixel_screen_height) / (128*128))
-  game_screen_canvas = love.graphics.newCanvas(pixel_screen_width, pixel_screen_height)
-  game_screen_canvas:setFilter("nearest", "nearest")
-  mmap_sizes = {floor(pixel_screen_width*.375), pixel_screen_width, 0}
-  mmap_sizes[0] = floor(pixel_screen_width*.1875)
-  setup_mmap()
-  local offset=floor(diff/2)
-
-  -- TODO: offset x & y should match screen aspect ratio
-  -- zoom_offset=zoom_offset+Vector(offset,.75*offset)
-  zoom_offset=zoom_offset+Vector(offset,(pixel_screen_width/pixel_screen_height)*offset)
-  -- screen_center = Vector(floor(pixel_screen_width/2), floor(pixel_screen_height/2))
-  -- pilot.screen_position=screen_center
-  -- if diff > 0 then
-    -- pilot.sector_position=pilot.sector_position-Vector(offset,offset)
-
-  for index,star in ipairs(sect.starfield) do
-    star.position=star.position+Vector(offset,.75*offset)
-  end
-
-    -- for index, p in ipairs(sect.planets) do
-    --   p.sector_position=p.sector_position-Vector(offset,offset)
-    -- end
-    -- for index, s in ipairs(npcships) do
-    --   s.sector_position=s.sector_position-Vector(offset,offset)
-    -- end
-  -- end
-end
-
 
 function btn(number, player)
   return buttons:btn(number)
@@ -209,29 +185,29 @@ function love.load(arg)
   love.window.setFullscreen(true)
   zoom_offset=Vector(0,0)
   time = 0
-  -- screen_width, screen_height = 1366, 768
+  -- settings.screen_width, settings.screen_height = 1366, 768
 
-  -- screen_width = love.graphics.setWidth(1366)
-  -- screen_height = love.graphics.setHeight(768)
+  -- settings.screen_width = love.graphics.setWidth(1366)
+  -- settings.screen_height = love.graphics.setHeight(768)
 
-  screen_width = love.graphics.getWidth()
-  screen_height = love.graphics.getHeight()
+  settings.screen_width = love.graphics.getWidth()
+  settings.screen_height = love.graphics.getHeight()
 
 
   -- portait
-  pixel_screen_width = 160
-  pixel_screen_height = floor(pixel_screen_width*(screen_width/screen_height))
+  settings.pixel_screen_width = 160
+  settings.pixel_screen_height = floor(settings.pixel_screen_width*(settings.screen_width/settings.screen_height))
 
   -- landscape
-  -- pixel_screen_width = 256
-  -- pixel_screen_height = floor(pixel_screen_width*(screen_height/screen_width))
+  -- settings.pixel_screen_width = 256
+  -- settings.pixel_screen_height = floor(settings.pixel_screen_width*(settings.screen_height/settings.screen_width))
 
-  -- pixel_screen_width, pixel_screen_height = 160, 160
-  -- pixel_screen_width, pixel_screen_height = 256, 256
-  starfield_count = floor(40 * (pixel_screen_width*pixel_screen_height) / (128*128))
-  screen_center = Vector(floor(pixel_screen_width/2),floor(pixel_screen_height/2))
+  -- settings.pixel_screen_width, settings.pixel_screen_height = 160, 160
+  -- settings.pixel_screen_width, settings.pixel_screen_height = 256, 256
+  starfield_count = floor(40 * (settings.pixel_screen_width*settings.pixel_screen_height) / (128*128))
+  screen_center = Vector(floor(settings.pixel_screen_width/2),floor(settings.pixel_screen_height/2))
 
-  buttons = ControlPad(screen_width, screen_height, true)
+  buttons = ControlPad(settings.screen_width, settings.screen_height, true)
 
   pixelfont = love.graphics.newFont("PICO-8.ttf", 5)
   -- pixelfont = love.graphics.newFont("Droid Sans Mono.ttf", 12)
@@ -246,7 +222,7 @@ function love.load(arg)
   love.graphics.setLineStyle("rough")
   -- love.graphics.setLineStyle("smooth")
 
-  game_screen_canvas = love.graphics.newCanvas(pixel_screen_width, pixel_screen_height)
+  game_screen_canvas = love.graphics.newCanvas(settings.pixel_screen_width, settings.pixel_screen_height)
   game_screen_canvas:setFilter("nearest", "nearest")
   -- game_screen_canvas:setFilter("linear", "linear", 1)
 
@@ -270,8 +246,8 @@ end
 local touches
 function love.update(dt)
   time = time + dt
-  -- screen_width = love.graphics.getWidth()
-  -- screen_height = love.graphics.getHeight()
+  -- settings.screen_width = love.graphics.getWidth()
+  -- settings.screen_height = love.graphics.getHeight()
 
   touches = love.touch.getTouches()
   buttons:get_presses(touches, love.timer.getDelta())
@@ -324,8 +300,8 @@ function love.draw()
     ("dt:      " .. love.timer.getDelta()),
     -- ("time:    " .. time),
     -- ("os.time: " .. os.time()),
-    ("Screen: [" .. screen_width.." x "..screen_height.."]"),
-    ("Canvas: [" .. pixel_screen_width.." x "..pixel_screen_height.."]"),
+    ("Screen: [" .. settings.screen_width.." x ".. settings.screen_height.."]"),
+    ("Canvas: [" .. settings.pixel_screen_width.." x ".. settings.pixel_screen_height.."]"),
   }
 
   _draw()
@@ -342,8 +318,8 @@ function love.draw()
   --   0,
   --   0,
   --   0,
-  --   screen_width/pixel_screen_width, -- scale x
-  --   screen_height/pixel_screen_height -- scale y
+  --   settings.screen_width/settings.pixel_screen_width, -- scale x
+  --   settings.screen_height/settings.pixel_screen_height -- scale y
   --   -- 0, -- Origin offset (x-axis).
   --   -- 0, -- Origin offset (y-axis).
   --   -- 0, -- Shearing factor (x-axis).
@@ -354,10 +330,10 @@ function love.draw()
   love.graphics.draw(
     game_screen_canvas,
     0,
-    screen_height,
+    settings.screen_height,
     deg270,
-    floor(screen_height/pixel_screen_width), -- scale y
-    floor(screen_width/pixel_screen_height) -- scale x
+    floor(settings.screen_height/settings.pixel_screen_width), -- scale y
+    floor(settings.screen_width/settings.pixel_screen_height) -- scale x
     -- 0, -- Origin offset (x-axis).
     -- 0, -- Origin offset (y-axis).
     -- 0, -- Shearing factor (x-axis).
@@ -368,12 +344,12 @@ function love.draw()
   -- -- center landscape
   -- love.graphics.draw(
   --   game_screen_canvas,
-  --   (screen_width-screen_height)/2, -- x
+  --   (settings.screen_width-settings.screen_height)/2, -- x
   --   0, -- y
   --   0, -- radians
   --   -- deg270, -- radians
-  --   screen_height/pixel_screen_height, -- scale x
-  --   screen_height/pixel_screen_height -- scale y
+  --   settings.screen_height/settings.pixel_screen_height, -- scale x
+  --   settings.screen_height/settings.pixel_screen_height -- scale y
   --   -- 0, -- Origin offset (x-axis).
   --   -- 0, -- Origin offset (y-axis).
   --   -- 0, -- Shearing factor (x-axis).
@@ -431,8 +407,8 @@ function love.draw()
     -- portait 270
     love.graphics.print(
       message,
-      i*debugfont_size+40, --screen_height,
-      screen_height-50,
+      i*debugfont_size+40, --settings.screen_height,
+      settings.screen_height-50,
       deg270)
 
     -- -- landscape
@@ -813,9 +789,9 @@ function ship:is_visible(player_ship_pos)
   local size=round(self.sprite_rows/2)
   local screen_position=(self.sector_position-player_ship_pos+screen_center):round()
   self.screen_position=screen_position
-  return screen_position.x+zoom_offset.x <pixel_screen_width+size and
+  return screen_position.x+zoom_offset.x <settings.pixel_screen_width+size and
          screen_position.x+zoom_offset.x >0-size and
-         screen_position.y+zoom_offset.y <pixel_screen_height+size and
+         screen_position.y+zoom_offset.y <settings.pixel_screen_height+size and
          screen_position.y+zoom_offset.y >0-size
 end
 
@@ -1152,7 +1128,7 @@ function star.new()
 end
 
 function star:reset(x,y)
-  self.position=Vector(x or random_int(pixel_screen_width),y or random_int(pixel_screen_height))
+  self.position=Vector(x or random_int(settings.pixel_screen_width),y or random_int(settings.pixel_screen_height))
   self.color=random_int(#star_colors[star_color_monochrome+star_color_index+1])+1
   self.speed=(random(.75)+0.25)
   return self
@@ -1186,9 +1162,9 @@ end
 function stellar_object_is_visible(obj,ship_pos)
   obj.screen_position=obj.sector_position-ship_pos+screen_center
   return
-    obj.screen_position.x+zoom_offset.x < pixel_screen_width+obj.radius and
+    obj.screen_position.x+zoom_offset.x < settings.pixel_screen_width+obj.radius and
     obj.screen_position.x+zoom_offset.x > 0-obj.radius and
-    obj.screen_position.y+zoom_offset.y < pixel_screen_height+obj.radius and
+    obj.screen_position.y+zoom_offset.y < settings.pixel_screen_height+obj.radius and
     obj.screen_position.y+zoom_offset.y > 0-obj.radius
 end
 
@@ -1261,7 +1237,7 @@ function sector:scroll_starfield(shipvel)
     add(self.starfield,star.new():reset())
   end
   local margin = 12
-  local width, height = pixel_screen_width, pixel_screen_height
+  local width, height = settings.pixel_screen_width, settings.pixel_screen_height
   for index,star in ipairs(self.starfield) do
     star.position:add(shipvel*star.speed*-1)
     if diff<0 then
@@ -1282,8 +1258,8 @@ end
 function is_offscreen(p,m)
   local margin=m or 0
   local mincoord=0-margin
-  local max_x_coord=pixel_screen_width+margin
-  local max_y_coord=pixel_screen_height+margin
+  local max_x_coord=settings.pixel_screen_width+margin
+  local max_y_coord=settings.pixel_screen_height+margin
   local x,y=p.screen_position.x,p.screen_position.y
   local duration_up=p.duration<0
   if p.deltav then
@@ -1550,8 +1526,8 @@ function planet:draw(ship_pos)
       self.screen_position.x-self.radius+zoom_offset.x,
       self.screen_position.y-self.radius+zoom_offset.y
       -- deg270,
-      -- screen_height/pixel_screen_height, -- scale x
-      -- screen_height/pixel_screen_height -- scale y
+      -- settings.screen_height/settings.pixel_screen_height, -- scale x
+      -- settings.screen_height/settings.pixel_screen_height -- scale y
       -- 0, -- Origin offset (x-axis).
       -- 0, -- Origin offset (y-axis).
       -- 0, -- Shearing factor (x-axis).
@@ -1782,8 +1758,8 @@ end
 function _init()
   grads3=nsplit"n1,1,0,|n-1,1,0,|n1,-1,0,|n-1,-1,0,|n1,0,1,|n-1,0,1,|n1,0,-1,|n-1,0,-1,|n0,1,1,|n0,-1,1,|n0,1,-1,|n0,-1,-1,|"
   mmap_sizes=split"n24,48,128,0,"
-  mmap_sizes = {floor(pixel_screen_width*.375), pixel_screen_width, 0}
-  mmap_sizes[0] = floor(pixel_screen_width*.1875)
+  mmap_sizes = {floor(settings.pixel_screen_width*.375), settings.pixel_screen_width, 0}
+  mmap_sizes[0] = floor(settings.pixel_screen_width*.1875)
   music_tracks=split"n13,0,-1,"
   mousemodes=split"agamepad,two button mouse,stylus (pocketchip),"
   framecount,secondcount,mousemode,mmap_size_index,music_track=0,0,2,0,0
@@ -1847,7 +1823,7 @@ function setup_mmap()
   mmap_size=mmap_sizes[mmap_size_index]
   if mmap_size>0 then
     mmap_size_halved=mmap_size/2
-    mmap_offset=Vector(pixel_screen_width-2-mmap_size_halved,mmap_size_halved+1)
+    mmap_offset=Vector(settings.pixel_screen_width-2-mmap_size_halved,mmap_size_halved+1)
   end
 end
 
@@ -1876,7 +1852,7 @@ function draw_mmap()
   if mmap_size>0 then
     if mmap_size<100 then
       text_height = text_height + 4
-      rectfill(pixel_screen_width-3-mmap_size,0,pixel_screen_width-1,mmap_size+2,1)
+      rectfill(settings.pixel_screen_width-3-mmap_size,0,settings.pixel_screen_width-1,mmap_size+2,1)
     else
       text_height=0
     end
@@ -1908,8 +1884,8 @@ function draw_mmap()
     end
 
   end
-  text("s "..#npcships-pirates,pixel_screen_width-16,text_height)
-  text("s "..pirates,pixel_screen_width-16,text_height+7,8)
+  text("s "..#npcships-pirates,settings.pixel_screen_width-16,text_height)
+  text("s "..pirates,settings.pixel_screen_width-16,text_height+7,8)
 end
 
 function text(text,x,y,textcolor,outline)
@@ -1939,7 +1915,7 @@ end
 
 function note_draw()
   if note_display_time>0 then
-    text(note_text,0,pixel_screen_height-7)
+    text(note_text,0,settings.pixel_screen_height-7)
     if framecount>=29 then
       note_display_time = note_display_time - 1
     end
@@ -2014,7 +1990,7 @@ function menu(coptions,callbacks)
     local text_color=cur_menu_colors[i]
     if i==pressed then text_color=darkshipcolors[text_color] end
     if cur_options[i] then
-      local p=rotated_vector(a,15)+Vector(floor(pixel_screen_width/2),floor(pixel_screen_height/2)+26)
+      local p=rotated_vector(a,15)+Vector(floor(settings.pixel_screen_width/2),floor(settings.pixel_screen_height/2)+26)
       if a==.5 then
         p.x = p.x - 4*#cur_options[i]
       elseif a~=1 then
@@ -2026,8 +2002,8 @@ function menu(coptions,callbacks)
     end
   end
   text("  |  \n -+- \n  |",
-       floor(pixel_screen_width/2)-10,
-       floor(pixel_screen_height/2)+21,
+       floor(settings.pixel_screen_width/2)-10,
+       floor(settings.pixel_screen_height/2)+21,
        6,true)
 end
 
@@ -2230,8 +2206,8 @@ function render_landed_screen()
       0,
       0
       -- deg270,
-      -- screen_height/pixel_screen_height, -- scale x
-      -- screen_height/pixel_screen_height -- scale y
+      -- settings.screen_height/settings.pixel_screen_height, -- scale x
+      -- settings.screen_height/settings.pixel_screen_height -- scale y
       -- 0, -- Origin offset (x-axis).
       -- 0, -- Origin offset (y-axis).
       -- 0, -- Shearing factor (x-axis).
@@ -2315,14 +2291,12 @@ function _update()
 
     -- zoom out
     if btn(6) or love.keyboard.isDown("-")  then
-      set_screen_size(4)
+      settings:zoom_out()
       -- pilot:buildship()
     end
     -- zoom in
     if btn(7) or love.keyboard.isDown("=") then
-      if pixel_screen_width >= 128+4 then
-      set_screen_size(-4)
-      end
+      settings:zoom_in()
     end
     -- rotate
     if btn(8) or love.keyboard.isDown("r") then
@@ -2428,18 +2402,18 @@ function render_game_screen()
         local color,shadow=targeted_ship:targeted_color()
         local hull_radius=floor(targeted_ship.sprite_rows*.5)
         local d=rotated_vector((targeted_ship.screen_position-player_screen_position):angle())
-        local draw_dist_from_center = floor(pixel_screen_width/2-8)
+        local draw_dist_from_center = floor(settings.pixel_screen_width/2-8)
         last_offscreen_pos=d*(draw_dist_from_center-hull_radius)+screen_center
         local p2=last_offscreen_pos:clone():add(Vector(-4*(#distance/2))):add(zoom_offset)
         targeted_ship:draw_sprite_rotated(last_offscreen_pos)
-        if p2.y>floor(pixel_screen_width/2-1) then
+        if p2.y>floor(settings.pixel_screen_width/2-1) then
           p2:add(Vector(1,-12-hull_radius))
         else
           p2:add(Vector(1,7+hull_radius))
         end
         text(distance,round(p2.x),round(p2.y),color)
       end
-      text(targeted_ship.name..targeted_ship:hp_string(),0,pixel_screen_height-14,targeted_ship:hp_color())
+      text(targeted_ship.name..targeted_ship:hp_string(),0,settings.pixel_screen_height-14,targeted_ship:hp_color())
     end
   end
 
