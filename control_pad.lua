@@ -20,6 +20,15 @@ do
       "zoomin",
       "rotate"
     },
+    rotate = function(self)
+      self.portrait = not self.portrait
+      return self:set_positions()
+    end,
+    set_screen_size = function(self, w, h)
+      self.screen_width = w
+      self.screen_height = h
+      return self:set_positions()
+    end,
     set_positions = function(self, size_ratio, separation_ratio)
       if size_ratio == nil then
         size_ratio = .063
@@ -36,6 +45,11 @@ do
       local dpad = Vector(self.screen_height + 2 * separation, self.screen_height - 2 * separation)
       local ab = Vector(self.screen_height + 2 * separation, 2 * separation)
       local zoom = Vector(self.screen_width - 2 * separation, half_screen_height)
+      if not self.portrait then
+        dpad = Vector(self.screen_width + 2 * separation, self.screen_width - 2 * separation)
+        ab = Vector(self.screen_width + 2 * separation, 2 * separation)
+        zoom = Vector(self.screen_height - 2 * separation, half_screen_height)
+      end
       self.positions = {
         dpad + Vector(0, separation),
         dpad + Vector(0, -separation),

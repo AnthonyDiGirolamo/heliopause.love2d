@@ -145,6 +145,7 @@ function GameScreen:rotate()
   -- end
   self.pixel_height, self.pixel_width = self.pixel_width, self.pixel_height
   self:canvas_size_add()
+  buttons:rotate()
 end
 
 function GameScreen:rotation_is_landscape()

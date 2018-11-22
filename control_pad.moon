@@ -26,20 +26,40 @@ class ControlPad
     "rotate"
   }
 
+
+  rotate: () =>
+    @portrait = not @portrait
+    @set_positions!
+
+
+  set_screen_size: (w, h) =>
+    @screen_width = w
+    @screen_height = h
+    @set_positions!
+
+
   set_positions: (size_ratio=.063, separation_ratio=.063) =>
     size = floor(size_ratio * @screen_width)
     separation = floor(separation_ratio * @screen_width)
+
     half_screen_height = floor(@screen_height/2)
     half_screen_width = floor(@screen_width/2)
     @screen_center = Vector(half_screen_width, half_screen_height)
     @touch_location_length_max = half_screen_height
-    -- portait
+
     dpad = Vector @screen_height + 2 * separation,
-             @screen_height - 2 * separation
+            @screen_height - 2 * separation
     ab = Vector @screen_height + 2 * separation,
-           2 * separation
+          2 * separation
     zoom = Vector @screen_width - 2 * separation,
       half_screen_height
+    if not @portrait
+      dpad = Vector @screen_width + 2 * separation,
+               @screen_width - 2 * separation
+      ab = Vector @screen_width + 2 * separation,
+             2 * separation
+      zoom = Vector @screen_height - 2 * separation,
+        half_screen_height
 
     @positions = {
       dpad + Vector(0, separation)  -- left
