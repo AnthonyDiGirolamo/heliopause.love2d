@@ -42,25 +42,37 @@ do
       local half_screen_width = floor(self.screen_width / 2)
       self.screen_center = Vector(half_screen_width, half_screen_height)
       self.touch_location_length_max = half_screen_height
-      local dpad = Vector(self.screen_height + 2 * separation, self.screen_height - 2 * separation)
-      local ab = Vector(self.screen_height + 2 * separation, 2 * separation)
-      local zoom = Vector(self.screen_width - 2 * separation, half_screen_height)
-      if not self.portrait then
-        dpad = Vector(self.screen_width + 2 * separation, self.screen_width - 2 * separation)
-        ab = Vector(self.screen_width + 2 * separation, 2 * separation)
-        zoom = Vector(self.screen_height - 2 * separation, half_screen_height)
+      if self.portrait then
+        local dpad = Vector(self.screen_height + 2 * separation, self.screen_height - 2 * separation)
+        local ab = Vector(self.screen_height + 2 * separation, 2 * separation)
+        local zoom = Vector(self.screen_width - 2 * separation, half_screen_height)
+        self.positions = {
+          dpad + Vector(0, separation),
+          dpad + Vector(0, -separation),
+          dpad + Vector(-separation, 0),
+          dpad + Vector(separation, 0),
+          ab + Vector(0, separation),
+          ab + Vector(0, -separation),
+          zoom + Vector(0, separation),
+          zoom + Vector(0, -separation),
+          zoom + Vector(0, -3 * separation)
+        }
+      else
+        local dpad = Vector(2 * separation, half_screen_height)
+        local ab = Vector(self.screen_width - 3 * separation, half_screen_height)
+        local zoom = Vector(half_screen_width, self.screen_height - 1 * separation)
+        self.positions = {
+          dpad + Vector(-separation, 0),
+          dpad + Vector(separation, 0),
+          dpad + Vector(0, -separation),
+          dpad + Vector(0, separation),
+          ab + Vector(-separation, 0),
+          ab + Vector(separation, 0),
+          zoom + Vector(-separation, 0),
+          zoom + Vector(separation, 0),
+          zoom + Vector(3 * separation, 0)
+        }
       end
-      self.positions = {
-        dpad + Vector(0, separation),
-        dpad + Vector(0, -separation),
-        dpad + Vector(-separation, 0),
-        dpad + Vector(separation, 0),
-        ab + Vector(0, separation),
-        ab + Vector(0, -separation),
-        zoom + Vector(0, separation),
-        zoom + Vector(0, -separation),
-        zoom + Vector(0, -3 * separation)
-      }
       self.sizes = {
         size,
         size,

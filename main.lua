@@ -108,8 +108,8 @@ function GameScreen:set_pixel_screen_size()
   game_screen_canvas = love.graphics.newCanvas(
     self.pixel_width, self.pixel_height)
 
-  self.screen_center.x = floor(self.pixel_width/2)
-  self.screen_center.y = floor(self.pixel_height/2)
+  self.screen_center.x = round(self.pixel_width/2)
+  self.screen_center.y = round(self.pixel_height/2)
 
   game_screen_canvas:setFilter("nearest", "nearest")
 
@@ -184,21 +184,37 @@ function GameScreen:canvas_size_add(amount)
 
   -- starfield_count = floor(40 * (pixel_width*pixel_height) / (128*128))
 
+  local old_screen_center = self.screen_center:clone()
   -- update canvas
   self:set_pixel_screen_size()
 
+  local screen_center_diff = self.screen_center - old_screen_center
   local offset=floor(diff/2)
 
   -- TODO: offset x & y should match screen aspect ratio
   -- zoom_offset=zoom_offset+Vector(offset,.75*offset)
-  zoom_offset=zoom_offset+Vector(offset,(self.pixel_width/self.pixel_height)*offset)
+
+  -- zoom_offset=zoom_offset+Vector(offset,(self.pixel_width/self.pixel_height)*offset)
+
   -- game_screen.screen_center = Vector(floor(pixel_width/2), floor(pixel_height/2))
   -- pilot.screen_position=game_screen.screen_center
   -- if diff > 0 then
     -- pilot.sector_position=pilot.sector_position-Vector(offset,offset)
 
-  for index,star in ipairs(sect.starfield) do
-    star.position=star.position+Vector(offset,.75*offset)
+  if diff ~= 0 then
+    -- update screen position of things that only exist in screen space. that is, no sector positions
+    for index,star in ipairs(sect.starfield) do
+      -- star.position=star.position+Vector(offset,.75*offset)
+      star:reset()
+    end
+    for index, particle in ipairs(particles) do
+      particle.screen_position:add(screen_center_diff)
+    end
+    for index, p in ipairs(projectiles) do
+      if not p.sector_position then
+        p.screen_position:add(screen_center_diff)
+      end
+    end
   end
 
     -- for index, p in ipairs(sect.planets) do

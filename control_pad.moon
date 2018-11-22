@@ -47,31 +47,39 @@ class ControlPad
     @screen_center = Vector(half_screen_width, half_screen_height)
     @touch_location_length_max = half_screen_height
 
-    dpad = Vector @screen_height + 2 * separation,
-            @screen_height - 2 * separation
-    ab = Vector @screen_height + 2 * separation,
-          2 * separation
-    zoom = Vector @screen_width - 2 * separation,
-      half_screen_height
-    if not @portrait
-      dpad = Vector @screen_width + 2 * separation,
-               @screen_width - 2 * separation
-      ab = Vector @screen_width + 2 * separation,
-             2 * separation
-      zoom = Vector @screen_height - 2 * separation,
-        half_screen_height
+    if @portrait
+      -- portrait base positions
+      dpad = Vector(@screen_height + 2 * separation, @screen_height - 2 * separation)
+      ab = Vector(@screen_height + 2 * separation, 2 * separation)
+      zoom = Vector(@screen_width - 2 * separation, half_screen_height)
+      @positions = {
+        dpad + Vector(0, separation)  -- left
+        dpad + Vector(0, -separation) -- right
+        dpad + Vector(-separation, 0) -- up
+        dpad + Vector(separation, 0)  -- down
+        ab + Vector(0, separation)    -- fire
+        ab + Vector(0, -separation)   -- pause
+        zoom + Vector(0, separation)  -- zoom out
+        zoom + Vector(0, -separation) -- zoom in
+        zoom + Vector(0, -3*separation) -- rotate
+      }
+    else
+      -- landscape base positions
+      dpad = Vector(2*separation, half_screen_height)
+      ab = Vector(@screen_width - 3 * separation, half_screen_height)
+      zoom = Vector(half_screen_width, @screen_height - 1 * separation)
+      @positions = {
+        dpad + Vector(-separation, 0) -- left
+        dpad + Vector(separation, 0)  -- right
+        dpad + Vector(0, -separation) -- up
+        dpad + Vector(0, separation)  -- down
+        ab + Vector(-separation, 0)   -- fire
+        ab + Vector(separation, 0)    -- pause
+        zoom + Vector(-separation, 0) -- zoom out
+        zoom + Vector(separation, 0)  -- zoom in
+        zoom + Vector(3*separation, 0) -- rotate
+      }
 
-    @positions = {
-      dpad + Vector(0, separation)  -- left
-      dpad + Vector(0, -separation) -- right
-      dpad + Vector(-separation, 0) -- up
-      dpad + Vector(separation, 0)  -- down
-      ab + Vector(0, separation)    -- fire
-      ab + Vector(0, -separation)   -- pause
-      zoom + Vector(0, separation)  -- zoom out
-      zoom + Vector(0, -separation) -- zoom in
-      zoom + Vector(0, -3*separation) -- rotate
-    }
 
     @sizes = {
       size -- left
