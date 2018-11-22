@@ -204,26 +204,23 @@ function GameScreen:canvas_size_add(amount)
   if diff ~= 0 then
     -- update screen position of things that only exist in screen space. that is, no sector positions
     for index,star in ipairs(sect.starfield) do
-      -- star.position=star.position+Vector(offset,.75*offset)
-      star:reset()
+      star.position:add(screen_center_diff)
+      -- star:reset()
     end
-    for index, particle in ipairs(particles) do
-      particle.screen_position:add(screen_center_diff)
+
+    -- ship particle debris (sparks) and explosions
+    for index, p in ipairs(particles) do
+      p.screen_position:add(screen_center_diff)
     end
+
     for index, p in ipairs(projectiles) do
+      -- if cannon shots (not a missile)
       if not p.sector_position then
         p.screen_position:add(screen_center_diff)
       end
     end
   end
 
-    -- for index, p in ipairs(sect.planets) do
-    --   p.sector_position=p.sector_position-Vector(offset,offset)
-    -- end
-    -- for index, s in ipairs(npcships) do
-    --   s.sector_position=s.sector_position-Vector(offset,offset)
-    -- end
-  -- end
 end
 
 game_screen = GameScreen.new(
@@ -1252,6 +1249,25 @@ function sector:new_planet_along_elipse()
     planet_nearby=sdist<15
   end
   return planet.new(x*33,y*33,((1-Vector(x,y):angle())-.25)%1)
+end
+
+function sector:add_to_starfield_at_screen_edge(amount)
+  for i=0,amount do
+    local side = round(random(3))  -- 0 1 2 3
+    if side == 0 then
+      -- left
+      add(sect.starfield, star.new():reset(0, false))
+    elseif side == 1 then
+      -- right
+      add(sect.starfield, star.new():reset(game_screen.pixel_width, false))
+    elseif side == 2 then
+      -- top
+      add(sect.starfield, star.new():reset(false, 0))
+    elseif side == 3 then
+      -- bottom
+      add(sect.starfield, star.new():reset(false, game_screen.pixel_height))
+    end
+  end
 end
 
 function sector:draw_starfield(shipvel)
