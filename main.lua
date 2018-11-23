@@ -365,7 +365,7 @@ function love.load(arg)
 
   -- game_screen.pixel_width, game_screen.pixel_height = 160, 160
   -- game_screen.pixel_width, game_screen.pixel_height = 256, 256
-  starfield_count = floor(40 * (game_screen.pixel_width*game_screen.pixel_height) / (128*128))
+  starfield_count = floor(10 * (game_screen.pixel_width*game_screen.pixel_height) / (128*128))
 
   buttons = ControlPad(game_screen.screen_width, game_screen.screen_height, true)
 
@@ -475,7 +475,8 @@ function love.draw()
     ("Canvas: [" .. game_screen.pixel_width.." x ".. game_screen.pixel_height.."]"),
     ("Starfield Count: " .. starfield_count),
     ("Starfield Size: " .. #sect.starfield),
-    ("Starfield Density: " .. starfield_count / (game_screen.pixel_width * game_screen.pixel_height))
+    -- ("Starfield Density: " .. starfield_count / (game_screen.pixel_width * game_screen.pixel_height))
+    ("planet# ".. #sect.planets)
   }
 
   _draw()
@@ -1923,10 +1924,15 @@ function load_sector()
   sect=sector.new()
   note_add("arriving in system ngc "..sect.seed)
   add(sect.planets,sun.new())
-  for i=0,random_int(12,2) do
-    add(sect.planets,sect:new_planet_along_elipse())
+  for i=1,round(random(3,12)) do
+    local p = sect:new_planet_along_elipse()
+    -- TODO new_planet_along_elipse returns nans
+    if not (p.sector_position.y ~= p.sector_position.y)
+    and (not p.sector_position.x ~= p.sector_position.x) then
+    add(sect.planets,p)
+    end
   end
-  pilot:set_position_near_object(sect.planets[2])
+  pilot:set_position_near_object(lume.randomchoice(sect.planets))
   pilot:clear_target()
   pirates=0
   npcships={}
@@ -2485,30 +2491,32 @@ function _update()
     end
 
     -- zoom out
-    -- if btn(6) or love.keyboard.isDown("-")  then
-    --   game_screen:zoom_out()
+    if btn(6) or love.keyboard.isDown("-")  then
+      game_screen:zoom_out()
+      -- pilot:buildship()
+    end
+    -- if btnp(6) then
+    --   game_screen:int_zoom_out()
     --   -- pilot:buildship()
     -- end
-    if btnp(6) then
-      game_screen:int_zoom_out()
-      -- pilot:buildship()
-    end
     -- zoom in
-    -- if btn(7) or love.keyboard.isDown("=") then
-    --   game_screen:zoom_in()
-    -- end
-    if btnp(7) then
-      game_screen:int_zoom_in()
-      -- pilot:buildship()
+    if btn(7) or love.keyboard.isDown("=") then
+      game_screen:zoom_in()
     end
+    -- if btnp(7) then
+    --   game_screen:int_zoom_in()
+    --   -- pilot:buildship()
+    -- end
     -- rotate
     if btnp(8) then
       game_screen:rotate()
     end
     -- debug (add npc)
     if btnp(9) then
-      local planet, dist = nearest_planet()
-      add_npc(planet)
+      -- local planet, dist = nearest_planet()
+      -- add_npc(planet)
+
+      load_sector()
     end
 
     if btn(0,0) or love.keyboard.isDown("a") then pilot:turn_left() end
