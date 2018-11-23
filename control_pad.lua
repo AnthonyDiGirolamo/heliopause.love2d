@@ -145,7 +145,10 @@ do
           self.screen_touch_active = true
           local x, y = love.touch.getPosition(touch)
           local touch_location = Vector(x, y) - self.screen_center
-          self.touch_location = touch_location:clone():rotate(-.25)
+          self.touch_location = touch_location:clone()
+          if self.portrait then
+            self.touch_location:rotate(-.25)
+          end
           self.touch_location_angle = self.touch_location:angle()
           self.touch_location_length = touch_location:length()
         end

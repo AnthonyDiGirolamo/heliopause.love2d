@@ -49,6 +49,9 @@ local deg90 = math.pi*0.5
 local deg180 = math.pi
 local deg270 = math.pi*1.5
 local debug_messages
+local game_screen
+local sect
+
 
 function vector_distance(a,b)
   return (b-a):length()
@@ -63,12 +66,32 @@ function GameScreen.new(width, height)
       screen_width = width,
       screen_height = height,
       rotation = deg270,
-      integer_only_zoom = true,
+      int_zoom_levels = {},
+      int_zoom_index = 1,
       pixel_width = width,
       pixel_height = height,
       screen_center = Vector(floor(width/2),floor(height/2))
     },
     GameScreen)
+end
+
+function GameScreen:calc_int_zoom_levels()
+  local izl = {}
+  table.insert(izl, 1)
+
+  local divisor = 1
+  while true do
+    divisor = divisor + 1
+    local xquotient = self.screen_width / divisor
+    local yquotient = self.screen_height / divisor
+    if xquotient < 128 or yquotient < 128 then
+      break
+    end
+    if math.fmod(self.screen_width, divisor) == 0 and math.fmod(self.screen_height, divisor) == 0 then
+      table.insert(izl, divisor)
+    end
+  end
+  self.int_zoom_levels = izl
 end
 
 function GameScreen:draw_canvas()
@@ -105,13 +128,14 @@ end
 
 
 function GameScreen:set_pixel_screen_size()
+  -- update canvas size
+
   game_screen_canvas = love.graphics.newCanvas(
     self.pixel_width, self.pixel_height)
+  game_screen_canvas:setFilter("nearest", "nearest")
 
   self.screen_center.x = round(self.pixel_width/2)
   self.screen_center.y = round(self.pixel_height/2)
-
-  game_screen_canvas:setFilter("nearest", "nearest")
 
   mmap_sizes = {
     floor(self.pixel_width*.375),
@@ -120,6 +144,43 @@ function GameScreen:set_pixel_screen_size()
   }
   mmap_sizes[0] = floor(self.pixel_width*.1875)
   setup_mmap()
+
+  if self.old_screen_center then
+
+    -- make changes based on new screen center
+    local screen_center_diff = self.screen_center - self.old_screen_center
+
+    if screen_center_diff.x ~= 0 and screen_center_diff.y ~= 0 then
+      -- update screen position of things that only exist in screen space. that is, no sector positions
+      if sect then
+        for index,star in ipairs(sect.starfield) do
+          star.position:add(screen_center_diff)
+          -- star:reset()
+        end
+
+        -- check starfield density
+        local old_star_count = starfield_count
+        local new_star_count = round(self.old_star_density * (self.pixel_width * self.pixel_height))
+        starfield_count = new_star_count
+        -- new stars are added/deleted in sector:scroll_starfield()
+
+        -- ship particle debris (sparks) and explosions
+        for index, p in ipairs(particles) do
+          p.screen_position:add(screen_center_diff)
+        end
+
+        for index, p in ipairs(projectiles) do
+          -- if cannon shots (not a missile)
+          if not p.sector_position then
+            p.screen_position:add(screen_center_diff)
+          end
+        end
+      end -- if sect
+
+    end -- if screen center changed
+
+  end -- end if old_screen_center
+
 end
 
 function GameScreen:rotate()
@@ -130,6 +191,7 @@ function GameScreen:rotate()
     -- landscape
     self.rotation = 0
   end
+
   -- if self.rotation == 0 then
   --   -- portrait reversed
   --   self.rotation = deg90
@@ -146,6 +208,11 @@ function GameScreen:rotate()
   self.pixel_height, self.pixel_width = self.pixel_width, self.pixel_height
   self:canvas_size_add()
   buttons:rotate()
+
+  -- redistribute stars
+  for index,star in ipairs(sect.starfield) do
+    star:reset()
+  end
 end
 
 function GameScreen:rotation_is_landscape()
@@ -159,75 +226,91 @@ end
 function GameScreen:zoom_out()
   if self:rotation_is_portrait() and self.pixel_height <= self.screen_width - 4 then
     self:canvas_size_add(4)
+  elseif self:rotation_is_landscape() and self.pixel_width <= self.screen_width - 4 then
+    self:canvas_size_add(4)
   end
 end
 
 function GameScreen:zoom_in()
   if self:rotation_is_portrait() and self.pixel_width >= 128+4 then
     self:canvas_size_add(-4)
+  elseif self:rotation_is_landscape() and self.pixel_height >= 128+4 then
+    self:canvas_size_add(-4)
   end
 end
 
+function GameScreen:int_zoom_out()
+  self.int_zoom_index = self.int_zoom_index - 1
+  if self.int_zoom_index < 1 then
+    self.int_zoom_index = 1
+  else
+    self:set_int_zoom(self.int_zoom_index)
+  end
+end
+
+function GameScreen:int_zoom_in()
+  self.int_zoom_index = self.int_zoom_index + 1
+  if self.int_zoom_index > #self.int_zoom_levels then
+    self.int_zoom_index = #self.int_zoom_levels
+  else
+    self:set_int_zoom(self.int_zoom_index)
+  end
+end
+
+function GameScreen:set_int_zoom(level)
+
+  if starfield_count then
+    self.old_star_density = starfield_count / (self.pixel_width * self.pixel_height)
+  end
+  self.old_screen_center = self.screen_center:clone()
+
+  local divisor = self.int_zoom_levels[level]
+
+  self.int_zoom_index = level
+
+  if self:rotation_is_landscape() then
+    self.pixel_width = floor(self.screen_width/divisor)
+    self.pixel_height = floor(self.screen_height/divisor)
+  else
+    self.pixel_height = floor(self.screen_width/divisor)
+    self.pixel_width = floor(self.screen_height/divisor)
+  end
+
+  self:set_pixel_screen_size()
+
+  if sect then
+    -- reset existing stars
+    for i, star in ipairs(sect.starfield) do
+      star:reset()
+    end
+    -- add new stars in reset positions
+    local stars_to_add = starfield_count - #sect.starfield
+    for i = 1, stars_to_add do
+      if #sect.starfield >= 600 then
+        break
+      end
+      add(sect.starfield, star.new():reset())
+    end
+  end -- if sect
+
+end
+
+
 function GameScreen:canvas_size_add(amount)
   local diff = amount or 0
+  self.old_star_density = starfield_count / (self.pixel_width * self.pixel_height)
+  self.old_screen_center = self.screen_center:clone()
 
   self.pixel_width = self.pixel_width + diff
-  -- pixel_height = pixel_height + diff
 
-  -- portait
   if self:rotation_is_landscape() then
     self.pixel_height = floor(self.pixel_width*(self.screen_height/self.screen_width))
   else
     self.pixel_height = floor(self.pixel_width*(self.screen_width/self.screen_height))
   end
 
-
-  -- starfield_count = floor(40 * (pixel_width*pixel_height) / (128*128))
-
-  local old_screen_center = self.screen_center:clone()
-  -- update canvas
   self:set_pixel_screen_size()
-
-  local screen_center_diff = self.screen_center - old_screen_center
-  local offset=floor(diff/2)
-
-  -- TODO: offset x & y should match screen aspect ratio
-  -- zoom_offset=zoom_offset+Vector(offset,.75*offset)
-
-  -- zoom_offset=zoom_offset+Vector(offset,(self.pixel_width/self.pixel_height)*offset)
-
-  -- game_screen.screen_center = Vector(floor(pixel_width/2), floor(pixel_height/2))
-  -- pilot.screen_position=game_screen.screen_center
-  -- if diff > 0 then
-    -- pilot.sector_position=pilot.sector_position-Vector(offset,offset)
-
-  if diff ~= 0 then
-    -- update screen position of things that only exist in screen space. that is, no sector positions
-    for index,star in ipairs(sect.starfield) do
-      star.position:add(screen_center_diff)
-      -- star:reset()
-    end
-
-    -- ship particle debris (sparks) and explosions
-    for index, p in ipairs(particles) do
-      p.screen_position:add(screen_center_diff)
-    end
-
-    for index, p in ipairs(projectiles) do
-      -- if cannon shots (not a missile)
-      if not p.sector_position then
-        p.screen_position:add(screen_center_diff)
-      end
-    end
-  end
-
 end
-
-game_screen = GameScreen.new(
-  love.graphics.getWidth(),
-  love.graphics.getHeight()
-)
-
 
 function btn(number, player)
   return buttons:btn(number)
@@ -258,18 +341,27 @@ function love.load(arg)
   -- game_screen.screen_width = love.graphics.setWidth(1366)
   -- game_screen.screen_height = love.graphics.setHeight(768)
 
-  game_screen.screen_width = love.graphics.getWidth()
-  game_screen.screen_height = love.graphics.getHeight()
+  game_screen = GameScreen.new(
+    love.graphics.getWidth(),
+    love.graphics.getHeight()
+  )
+  game_screen:calc_int_zoom_levels()
 
+  -- game_screen.screen_width = love.graphics.getWidth()
+  -- game_screen.screen_height = love.graphics.getHeight()
 
-  -- portait
-  game_screen.pixel_width = 160
-  game_screen.pixel_height = floor(game_screen.pixel_width*(game_screen.screen_width/game_screen.screen_height))
+  debugfont_size = round(love.graphics.getWidth() * 0.01)
+
+  -- -- portait
+  -- game_screen.pixel_width = 160
+  -- game_screen.pixel_height = floor(game_screen.pixel_width*(game_screen.screen_width/game_screen.screen_height))
 
   -- landscape
   -- game_screen.pixel_width = 256
   -- game_screen.pixel_height = floor(game_screen.pixel_width*(game_screen.screen_height/game_screen.screen_width))
-  game_screen:set_pixel_screen_size()
+
+  game_screen:set_int_zoom(#game_screen.int_zoom_levels)
+  -- game_screen:set_pixel_screen_size()
 
   -- game_screen.pixel_width, game_screen.pixel_height = 160, 160
   -- game_screen.pixel_width, game_screen.pixel_height = 256, 256
@@ -353,6 +445,17 @@ function love.keypressed(key)
     end
   end
 
+  if key == "0" then
+    game_screen:rotate()
+  end
+
+  if key == "[" then
+    game_screen:int_zoom_out()
+  end
+  if key == "]" then
+    game_screen:int_zoom_in()
+  end
+
 end
 
 function love.draw()
@@ -370,6 +473,9 @@ function love.draw()
     -- ("os.time: " .. os.time()),
     ("Screen: [" .. game_screen.screen_width.." x ".. game_screen.screen_height.."]"),
     ("Canvas: [" .. game_screen.pixel_width.." x ".. game_screen.pixel_height.."]"),
+    ("Starfield Count: " .. starfield_count),
+    ("Starfield Size: " .. #sect.starfield),
+    ("Starfield Density: " .. starfield_count / (game_screen.pixel_width * game_screen.pixel_height))
   }
 
   _draw()
@@ -442,21 +548,34 @@ function love.draw()
   -- mi = mi % 4
   -- table.insert(debug_messages, "mi: "..mi)
 
+  local index_messages = "int zoom levels: "
+  for i, num in ipairs(game_screen.int_zoom_levels) do
+    if i == game_screen.int_zoom_index then
+      index_messages = index_messages .. "[" .. num .. "]" .. ", "
+    else
+      index_messages = index_messages .. num .. ", "
+    end
+  end
+  table.insert(debug_messages, index_messages)
+
+
   for i, message in ipairs(debug_messages) do
 
-    -- portait 270
-    love.graphics.print(
-      message,
-      i*debugfont_size+40, --game_screen.screen_height,
-      game_screen.screen_height-50,
-      deg270)
-
-    -- -- landscape
-    -- love.graphics.print(
-    --   message,
-    --   50,
-    --   i*debugfont_size+80,
-    --   0)
+    if game_screen.rotation == deg270 then
+      -- portait deg270
+      love.graphics.print(
+        message,
+        i*debugfont_size+40, --game_screen.screen_height,
+        game_screen.screen_height-50,
+        deg270)
+    else
+      -- landscape deg0
+      love.graphics.print(
+        message,
+        50,
+        i*debugfont_size+80,
+        0)
+    end
 
   end
 
@@ -1291,25 +1410,42 @@ function sector:draw_starfield(shipvel)
 end
 
 function sector:scroll_starfield(shipvel)
-  local diff=starfield_count-#self.starfield
-  for i=1,diff do
-    add(self.starfield,star.new():reset())
+  -- did starcount change?
+  local stars_to_add = starfield_count - #self.starfield
+  -- add new stars if stars_to_add >= 1
+  if stars_to_add > 0 then
+    -- don't add more than 600 for performance sake
+    if stars_to_add + starfield_count < 600 then
+      sect:add_to_starfield_at_screen_edge(stars_to_add)
+    end
+    -- add stars at random locations
+    -- for i = 1, stars_to_add do
+    --   add(self.starfield, star.new():reset())
+    -- end
+  elseif stars_to_add < 0 then
+    -- remove random stars if we have to many
+    for i=1,(stars_to_add*-1) do
+      local index_to_delete = random(1, #self.starfield)
+      table.remove(self.starfield, index_to_delete)
+    end
   end
-  local margin = 12
-  local width, height = game_screen.pixel_width, game_screen.pixel_height
-  for index,star in ipairs(self.starfield) do
-    star.position:add(shipvel*star.speed*-1)
-    if diff<0 then
-      del(self.starfield,star)
-      diff = diff + 1
-    elseif star.position.x > width + margin then
-      star:reset(-margin)
-    elseif star.position.x < -margin then
-      star:reset(width + margin)
-    elseif star.position.y > height + margin then
-      star:reset(false,-margin)
-    elseif star.position.y < -margin then
-      star:reset(false,height + margin)
+
+  -- move stars outside the screen margin to the opposite side of the screen
+  if shipvel.x ~= 0 or shipvel.y ~= 0 then
+    local margin = 12
+    local width, height = game_screen.pixel_width, game_screen.pixel_height
+    for index, star in ipairs(self.starfield) do
+      -- move stars according to the ship velocity
+      star.position:add(shipvel*star.speed*-1)
+      if star.position.x > width + margin then
+        star:reset(-margin)
+      elseif star.position.x < -margin then
+        star:reset(width + margin)
+      elseif star.position.y > height + margin then
+        star:reset(false,-margin)
+      elseif star.position.y < -margin then
+        star:reset(false,height + margin)
+      end
     end
   end
 end
@@ -1920,7 +2056,7 @@ function draw_mmap()
     if y>x then x=y end
     mmap_denominator=min(6,ceil(x/5000))*5000/mmap_size_halved
     for index, obj in ipairs(sect.planets) do
-      local p=obj.sector_position+game_screen.screen_center
+      local p=obj.sector_position:clone() --+game_screen.screen_center
       if obj.planet_type then p:add(Vector(-obj.radius,-obj.radius)) end
       p=p/mmap_denominator+mmap_offset
       if mmap_size>100 then
@@ -2358,14 +2494,14 @@ function _update()
       game_screen:zoom_in()
     end
     -- rotate
-    if btnp(8) or love.keyboard.isDown("r") then
+    if btnp(8) then
       game_screen:rotate()
     end
 
     if btn(0,0) or love.keyboard.isDown("a") then pilot:turn_left() end
     if btn(1,0) or love.keyboard.isDown("s") then pilot:turn_right() end
     if btn(3,0) or love.keyboard.isDown("r") then pilot:reverse_direction() end
-    if btn(5,0) or love.keyboard.isDown("n")
+    if btn(5,0) or love.keyboard.isDown(".")
     or (mousemode==1 and mbtn==1 or mbtn==3) then
       pilot:fire_weapon()
     end

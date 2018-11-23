@@ -3,14 +3,14 @@ source_files = Rake::FileList["*.lua", "shine/*.lua"]
 LOVEFILE = File.basename(File.expand_path('.')) + ".love"
 
 system = "linux"
-lovefile_dest = "./#{LOVEFILE}"
+lovefile_dest = false
 
 if ENV["PATH"] =~ /com.termux/
   system = "android"
   lovefile_dest = "~/storage/downloads/#{LOVEFILE}"
 end
 
-moonc = "~/.luarocks/bin/moonc"
+moonc = File.expand_path("~/.luarocks/bin/moonc")
 moonc = "moonc" if !File.exists? moonc
 
 task default: [LOVEFILE, :launch]
@@ -19,7 +19,7 @@ task LOVEFILE do |t|
   rm_f LOVEFILE
   sh "#{moonc} *.moon"
   sh "zip -r #{LOVEFILE} *"
-  sh "cp #{LOVEFILE} #{lovefile_dest}"
+  sh "cp #{LOVEFILE} #{lovefile_dest}" if lovefile_dest
 end
 
 task :launch do

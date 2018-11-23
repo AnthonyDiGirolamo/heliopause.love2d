@@ -130,7 +130,9 @@ class ControlPad
         @screen_touch_active = true
         x, y = love.touch.getPosition(touch)
         touch_location = Vector(x,y) - @screen_center
-        @touch_location = touch_location\clone()\rotate(-.25)
+        @touch_location = touch_location\clone()
+        if @portrait
+          @touch_location\rotate(-.25)
         @touch_location_angle = @touch_location\angle!
         @touch_location_length = touch_location\length!
     @hold_time
