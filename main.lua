@@ -467,16 +467,14 @@ function love.draw()
   love.graphics.setFont(pixelfont)
 
   debug_messages = {
-    ("FPS:     " .. love.timer.getFPS()),
-    ("dt:      " .. love.timer.getDelta()),
+    ("fps:     " .. love.timer.getFPS() .. ", delta_t: " .. love.timer.getDelta()),
     -- ("time:    " .. time),
     -- ("os.time: " .. os.time()),
-    ("Screen: [" .. game_screen.screen_width.." x ".. game_screen.screen_height.."]"),
-    ("Canvas: [" .. game_screen.pixel_width.." x ".. game_screen.pixel_height.."]"),
-    ("Starfield Count: " .. starfield_count),
-    ("Starfield Size: " .. #sect.starfield),
+    ("screen: [" .. game_screen.screen_width..", ".. game_screen.screen_height.."], " ..
+     "canvas: [" .. game_screen.pixel_width..", ".. game_screen.pixel_height.."]"),
+    ("starfield_count: " .. starfield_count .. ", #starfield: " .. #sect.starfield),
     -- ("Starfield Density: " .. starfield_count / (game_screen.pixel_width * game_screen.pixel_height))
-    ("planet# ".. #sect.planets)
+    ("#planets: ".. #sect.planets)
   }
 
   _draw()
@@ -539,9 +537,9 @@ function love.draw()
   end
 
   if buttons.touch_location_angle then
-    table.insert(debug_messages, "touch angle "..buttons.touch_location_angle)
-    table.insert(debug_messages, "touch length "..buttons.touch_location_length)
-    table.insert(debug_messages, "touch location "..buttons.touch_location:__tostring())
+    table.insert(debug_messages, "touch_angle: "..buttons.touch_location_angle)
+    table.insert(debug_messages, "touch_length: "..buttons.touch_location_length)
+    table.insert(debug_messages, "touch_location: "..buttons.touch_location:__tostring())
   end
 
   -- mi=buttons.touch_location_angle-.375
@@ -549,7 +547,7 @@ function love.draw()
   -- mi = mi % 4
   -- table.insert(debug_messages, "mi: "..mi)
 
-  local index_messages = "int zoom levels: "
+  local index_messages = "integer zoom levels: "
   for i, num in ipairs(game_screen.int_zoom_levels) do
     if i == game_screen.int_zoom_index then
       index_messages = index_messages .. "[" .. num .. "]" .. ", "
@@ -566,7 +564,7 @@ function love.draw()
       -- portait deg270
       love.graphics.print(
         message,
-        i*debugfont_size+40, --game_screen.screen_height,
+        i*debugfont_size+80, --game_screen.screen_height,
         game_screen.screen_height-50,
         deg270)
     else
@@ -574,7 +572,7 @@ function love.draw()
       love.graphics.print(
         message,
         50,
-        i*debugfont_size+80,
+        i*debugfont_size+100,
         0)
     end
 
@@ -920,9 +918,9 @@ function ship:draw()
   -- text((self.velocity_angle_opposite).." vel-a-o", 0,49)
   self:draw_sprite_rotated() --game_screen.screen_center+zoom_offset)
 
-  table.insert(debug_messages, "Sector Position: "..self.sector_position:__tostring())
-  table.insert(debug_messages, "Zoom offset: "..zoom_offset:__tostring())
-  table.insert(debug_messages, "turn rate: "..self.turn_rate)
+  table.insert(debug_messages, "sector_position: "..self.sector_position:__tostring())
+  -- table.insert(debug_messages, "Zoom offset: "..zoom_offset:__tostring())
+  -- table.insert(debug_messages, "turn rate: "..self.turn_rate)
 
   -- local nplanet,dist=nearest_planet()
   -- table.insert(debug_messages, "Nearest Planet Position: "..nplanet.sector_position:__tostring())
@@ -1924,12 +1922,11 @@ function load_sector()
   sect=sector.new()
   note_add("arriving in system ngc "..sect.seed)
   add(sect.planets,sun.new())
-  for i=1,round(random(3,12)) do
+  for i=1,round(random(3,24)) do
     local p = sect:new_planet_along_elipse()
     -- TODO new_planet_along_elipse returns nans
-    if not (p.sector_position.y ~= p.sector_position.y)
-    and (not p.sector_position.x ~= p.sector_position.x) then
-    add(sect.planets,p)
+    if not (p.sector_position.y ~= p.sector_position.y) and (not p.sector_position.x ~= p.sector_position.x) then
+      add(sect.planets,p)
     end
   end
   pilot:set_position_near_object(lume.randomchoice(sect.planets))
