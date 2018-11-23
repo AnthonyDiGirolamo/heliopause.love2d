@@ -2485,17 +2485,30 @@ function _update()
     end
 
     -- zoom out
-    if btn(6) or love.keyboard.isDown("-")  then
-      game_screen:zoom_out()
+    -- if btn(6) or love.keyboard.isDown("-")  then
+    --   game_screen:zoom_out()
+    --   -- pilot:buildship()
+    -- end
+    if btnp(6) then
+      game_screen:int_zoom_out()
       -- pilot:buildship()
     end
     -- zoom in
-    if btn(7) or love.keyboard.isDown("=") then
-      game_screen:zoom_in()
+    -- if btn(7) or love.keyboard.isDown("=") then
+    --   game_screen:zoom_in()
+    -- end
+    if btnp(7) then
+      game_screen:int_zoom_in()
+      -- pilot:buildship()
     end
     -- rotate
     if btnp(8) then
       game_screen:rotate()
+    end
+    -- debug (add npc)
+    if btnp(9) then
+      local planet, dist = nearest_planet()
+      add_npc(planet)
     end
 
     if btn(0,0) or love.keyboard.isDown("a") then pilot:turn_left() end

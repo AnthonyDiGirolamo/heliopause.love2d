@@ -18,7 +18,8 @@ do
       "pause",
       "zoomout",
       "zoomin",
-      "rotate"
+      "rotate",
+      "debug"
     },
     rotate = function(self)
       self.portrait = not self.portrait
@@ -53,9 +54,10 @@ do
           dpad + Vector(separation, 0),
           ab + Vector(0, separation),
           ab + Vector(0, -separation),
-          zoom + Vector(0, separation),
-          zoom + Vector(0, -separation),
-          zoom + Vector(0, -3 * separation)
+          zoom + Vector(0, 0.5 * separation),
+          zoom + Vector(0, -0.5 * separation),
+          zoom + Vector(0, -3 * 0.5 * separation),
+          zoom + Vector(0, 3 * 0.5 * separation)
         }
       else
         local dpad = Vector(2 * separation, half_screen_height)
@@ -68,9 +70,10 @@ do
           dpad + Vector(0, separation),
           ab + Vector(-separation, 0),
           ab + Vector(separation, 0),
-          zoom + Vector(-separation, 0),
-          zoom + Vector(separation, 0),
-          zoom + Vector(3 * separation, 0)
+          zoom + Vector(-0.5 * separation, 0),
+          zoom + Vector(0.5 * separation, 0),
+          zoom + Vector(3 * 0.5 * separation, 0),
+          zoom + Vector(-3 * 0.5 * separation, 0)
         }
       end
       self.sizes = {
@@ -80,8 +83,9 @@ do
         size,
         size,
         size,
-        size,
-        size,
+        size / 2,
+        size / 2,
+        size / 2,
         size / 2
       }
       do

@@ -24,6 +24,7 @@ class ControlPad
     "zoomout"
     "zoomin"
     "rotate"
+    "debug"
   }
 
 
@@ -59,9 +60,10 @@ class ControlPad
         dpad + Vector(separation, 0)  -- down
         ab + Vector(0, separation)    -- fire
         ab + Vector(0, -separation)   -- pause
-        zoom + Vector(0, separation)  -- zoom out
-        zoom + Vector(0, -separation) -- zoom in
-        zoom + Vector(0, -3*separation) -- rotate
+        zoom + Vector(0, 0.5*separation)  -- zoom out
+        zoom + Vector(0, -0.5*separation) -- zoom in
+        zoom + Vector(0, -3*0.5*separation) -- rotate
+        zoom + Vector(0, 3*0.5*separation) -- debug
       }
     else
       -- landscape base positions
@@ -75,9 +77,10 @@ class ControlPad
         dpad + Vector(0, separation)  -- down
         ab + Vector(-separation, 0)   -- fire
         ab + Vector(separation, 0)    -- pause
-        zoom + Vector(-separation, 0) -- zoom out
-        zoom + Vector(separation, 0)  -- zoom in
-        zoom + Vector(3*separation, 0) -- rotate
+        zoom + Vector(-0.5*separation, 0) -- zoom out
+        zoom + Vector(0.5*separation, 0)  -- zoom in
+        zoom + Vector(3*0.5*separation, 0) -- rotate
+        zoom + Vector(-3*0.5*separation, 0) -- debug
       }
 
 
@@ -88,9 +91,10 @@ class ControlPad
       size -- down
       size -- fire
       size -- pause
-      size -- zoom out
-      size -- zoom in
+      size/2 -- zoom out
+      size/2 -- zoom in
       size/2 -- rotate
+      size/2 -- debug
     }
     @hold_time = [0 for p in *@positions]
     @hold_frames = [0 for p in *@positions]
