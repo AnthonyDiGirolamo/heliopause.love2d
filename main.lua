@@ -2510,10 +2510,10 @@ function _update()
     end
     -- debug (add npc)
     if btnp(9) then
-      -- local planet, dist = nearest_planet()
-      -- add_npc(planet)
+      local planet, dist = nearest_planet()
+      add_npc(planet)
 
-      load_sector()
+      -- load_sector()
     end
 
     if btn(0,0) or love.keyboard.isDown("a") then pilot:turn_left() end

@@ -9,7 +9,7 @@ ifeq ($(moonc),)  # is $(moonc) empty?
 endif
 
 # Are we using termux on android?
-ifeq ($(findstring "com.termux", "$(PATH)"), "com.termux")
+ifeq ($(findstring Android, $(shell uname -a)), Android)
 	runcommand = run_android
 else
 	runcommand = run_linux
