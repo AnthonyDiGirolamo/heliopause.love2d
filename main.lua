@@ -466,6 +466,9 @@ function love.draw()
   love.graphics.setColor(0, 0, 0, 255)
   love.graphics.setFont(pixelfont)
 
+  debug_text_x = ceil(game_screen.screen_width * 0.0175)
+  debug_text_y = ceil(game_screen.screen_height * 0.0517)
+
   debug_messages = {
     ("fps:     " .. love.timer.getFPS() .. ", delta_t: " .. love.timer.getDelta()),
     -- ("time:    " .. time),
@@ -557,22 +560,21 @@ function love.draw()
   end
   table.insert(debug_messages, index_messages)
 
-
   for i, message in ipairs(debug_messages) do
 
     if game_screen.rotation == deg270 then
       -- portait deg270
       love.graphics.print(
         message,
-        i*debugfont_size+80, --game_screen.screen_height,
-        game_screen.screen_height-50,
+        i*debugfont_size+debug_text_y, --game_screen.screen_height,
+        game_screen.screen_height-debug_text_x,
         deg270)
     else
       -- landscape deg0
       love.graphics.print(
         message,
-        50,
-        i*debugfont_size+100,
+        debug_text_x,
+        i*debugfont_size+debug_text_y,
         0)
     end
 
@@ -1145,6 +1147,18 @@ function ship:apply_thrust(max_velocity)
   self.velocity=velocity
   self.velocity_vector=velocity_vector
 end
+
+function ship:dampen_speed()
+  if self.velocity<1.2*self.deltav then
+    self:reset_velocity()
+  else
+    local cvn = self.velocity_vector:clone()
+    cvn:normalize()
+    self.velocity_vector:add(cvn * -0.01)
+    self.velocity = self.velocity_vector:length()
+  end
+end
+
 
 function ship:reverse_direction()
   if self.velocity>0 then
@@ -2484,6 +2498,9 @@ function _update()
     else
       if pilot.accelerating and no_orders then
         pilot:cut_thrust()
+      end
+      if no_orders then
+        pilot:dampen_speed()
       end
     end
 
