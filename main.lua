@@ -418,12 +418,18 @@ end
 function love.textinput(t)
 end
 
+-- Keyboard Keys
 function love.keypressed(key)
   if key == "escape" then
     love.event.quit()
   end
   if key == "p" then
     pilot:buildship()
+  end
+  if key == "b" then
+    local px = pilot.sector_position.x
+    local py = pilot.sector_position.y
+    add(sect.planets,planet.new(px,py,((1-Vector(px,py):angle())-.25)%1))
   end
   if key == "j" then
     load_sector()
@@ -1674,6 +1680,7 @@ function simplex3d(x,y,z)
   return 32*(n0+n1+n2+n3)
 end
 
+-- Make a new planet type
 function new_planet(a)
   local p=nsplit(a)
   local args=p[2]
@@ -2613,16 +2620,20 @@ end
 
 function render_game_screen()
   cls()
+  -- Draw Starfield
   sect:draw_starfield(pilot.velocity_vector)
+  -- Draw Planets
   for index, p in ipairs(sect.planets) do
     p:draw(pilot.sector_position)
   end
+  -- Draw ships if on screen
   for index, s in ipairs(npcships) do
     if s:is_visible(pilot.sector_position) then
       s:draw_sprite_rotated()
     end
   end
 
+  -- Draw Current Target
   if pilot.target then
     last_offscreen_pos=nil
     local player_screen_position=pilot.screen_position
@@ -2633,7 +2644,9 @@ function render_game_screen()
         local color,shadow=targeted_ship:targeted_color()
         local hull_radius=floor(targeted_ship.sprite_rows*.5)
         local d=rotated_vector((targeted_ship.screen_position-player_screen_position):angle())
-        local draw_dist_from_center = floor(game_screen.pixel_width/2-8)
+        -- target is shown in a circle around the player
+        -- use the smaller of the two screen dimensions to define the circle radius
+        local draw_dist_from_center = floor(min(game_screen.pixel_width, game_screen.pixel_height)/2-8)
         last_offscreen_pos=d*(draw_dist_from_center-hull_radius)+game_screen.screen_center
         local p2=last_offscreen_pos:clone():add(Vector(-4*(#distance/2))):add(zoom_offset)
         targeted_ship:draw_sprite_rotated(last_offscreen_pos)
@@ -2648,8 +2661,10 @@ function render_game_screen()
     end
   end
 
+  -- Draw player pilot ship
   pilot:draw()
 
+  -- If dead show the continue menu
   if pilot.hp<1 then
     paused=true
     pilot.dead=true
@@ -2665,6 +2680,7 @@ function render_game_screen()
     })
   end
 
+  -- Draw damage particles
   for index, p in ipairs(particles) do
     if is_offscreen(p,32) then
       del(particles,p)
@@ -2677,6 +2693,7 @@ function render_game_screen()
     end
   end
 
+  -- Draw projectiles
   for index, p in ipairs(projectiles) do
     if is_offscreen(p,63) then
       del(projectiles,p)
@@ -2690,11 +2707,16 @@ function render_game_screen()
     end
   end
 
+  -- Draw the minimap
   draw_mmap()
+
+  -- If warping, draw the warp effect
   if warpsize>0 then
+    -- camera shake on pico8
     -- camera(random_int(2)-1, random_int(2)-1)
     circfill(63,63,warpsize,7)
     warpsize = warpsize - 1
+    -- reset camera if warp is done
     -- if warpsize==0 then camera() end
   end
 
