@@ -1752,7 +1752,7 @@ function planet:draw(ship_pos)
   end
 end
 
-function planet:render_planet(fullmap,renderback)
+function planet:render_planet(fullmap, render_far_side)
   local radius=self.radius-1
   if fullmap then radius=47 end
 
@@ -1812,7 +1812,7 @@ function planet:render_planet(fullmap,renderback)
 
     local theta_start,theta_end=0,.5
     local theta_increment=theta_end/self.width
-    if fullmap and renderback then
+    if fullmap and render_far_side then
       theta_start=.5
       theta_end=1
     end
@@ -1975,6 +1975,7 @@ function load_sector()
 end
 
 function _init()
+  -- these nsplits need split_start = 0
   grads3=nsplit"n1,1,0,|n-1,1,0,|n1,-1,0,|n-1,-1,0,|n1,0,1,|n-1,0,1,|n1,0,-1,|n-1,0,-1,|n0,1,1,|n0,-1,1,|n0,1,-1,|n0,-1,-1,|"
   mmap_sizes=split"n24,48,128,0,"
   mmap_sizes = {floor(game_screen.pixel_width*.375), game_screen.pixel_width, 0}
@@ -1983,6 +1984,7 @@ function _init()
   mousemodes=split"agamepad,two button mouse,stylus (pocketchip),"
   framecount,secondcount,mousemode,mmap_size_index,music_track=0,0,2,0,0
   mbtn=0
+  -- these nsplits need split_start = 1
   split_start=1
   btnv=split"x2031"
   ijks=nsplit"n1,0,0,1,1,0,|n1,0,0,1,0,1,|n0,0,1,1,0,1,|n0,0,1,0,1,1,|n0,1,0,0,1,1,|n0,1,0,1,1,0,|"
