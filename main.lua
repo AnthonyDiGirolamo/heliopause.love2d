@@ -1,6 +1,7 @@
 debug = true
 local shine = require("shine")
 local lume = require("lume")
+Object = require("classic")
 
 
 local round, randomseed, random, random_int, cos, sin, sqrt, sub, add, del, abs, min, max, floor, ceil, rect, rectfill, circfill, cls, color, sset, band, bor, bxor, bnot, shl, shr
@@ -58,21 +59,17 @@ function vector_distance(a,b)
 end
 
 
-GameScreen={}
-GameScreen.__index=GameScreen
-function GameScreen.new(width, height)
-  return setmetatable(
-    {
-      screen_width = width,
-      screen_height = height,
-      rotation = deg270,
-      int_zoom_levels = {},
-      int_zoom_index = 1,
-      pixel_width = width,
-      pixel_height = height,
-      screen_center = Vector(floor(width/2),floor(height/2))
-    },
-    GameScreen)
+GameScreen = Object:extend()
+
+function GameScreen:new(width, height)
+  self.screen_width = width
+  self.screen_height = height
+  self.rotation = deg270
+  self.int_zoom_levels = {}
+  self.int_zoom_index = 1
+  self.pixel_width = width
+  self.pixel_height = height
+  self.screen_center = Vector(floor(width/2),floor(height/2))
 end
 
 function GameScreen:calc_int_zoom_levels()
@@ -341,7 +338,7 @@ function love.load(arg)
   -- game_screen.screen_width = love.graphics.setWidth(1366)
   -- game_screen.screen_height = love.graphics.setHeight(768)
 
-  game_screen = GameScreen.new(
+  game_screen = GameScreen(
     love.graphics.getWidth(),
     love.graphics.getHeight()
   )
@@ -590,7 +587,7 @@ end
 
 
 function split(s)
-  local t,start_index,ti={},2,split_start or 0
+  local t, start_index, ti = {}, 2, split_start or 0
   local mode=sub(s,1,1)
   for i=2,#s do
     local c=sub(s,i,i)
@@ -627,12 +624,15 @@ end
 function rotated_angle(len)
   return rotated_vector(random(),len)
 end
+
 function rotated_vector(angle,x,y)
   return Vector(x or 1,y):rotate(angle)
 end
+
 function round(i)
   return floor(i+.5)
 end
+
 function format(num)
   local n=floor(num*10+0.5)/10
   return floor(n).."."..round((n%1)*10)
