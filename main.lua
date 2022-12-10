@@ -104,8 +104,11 @@ function GameScreen:draw_canvas()
     )
   else
     -- if self:rotation_is_portrait() then
-    love.graphics.draw(game_screen_canvas, 0, game_screen.screen_height, self.rotation,
-                       game_screen.screen_height / game_screen.pixel_width, -- scale x
+    love.graphics.draw(game_screen_canvas, -- canvas
+    0, -- position x
+    game_screen.screen_height, -- position y
+    self.rotation, -- rotation?
+    game_screen.screen_height / game_screen.pixel_width, -- scale x
     game_screen.screen_width / game_screen.pixel_height -- scale y
     -- 0, -- Origin offset (x-axis).
     -- 0, -- Origin offset (y-axis).
@@ -368,6 +371,8 @@ function love.load(arg)
   love.keyboard.setTextInput(true)
 
   _init()
+  -- use landscape by default
+  game_screen:rotate()
 end
 
 local touches
@@ -480,7 +485,8 @@ function love.draw()
   love.graphics.setBlendMode("alpha")
   love.graphics.setColor(255, 255, 255, 255)
 
-  buttons:draw()
+  -- don't draw control buttons for now
+  -- buttons:draw()
 
   color(7)
   love.graphics.setFont(debugfont)
@@ -2237,7 +2243,7 @@ function _update()
     -- mi=mi:angle()-.375
     -- mi=floor(4*mi)+1
     -- mi = mi % 4
-    keys = {"w", "a", "r", "s"}
+    keys = {"w", "a", "s", "d"}
 
     for i = 1, 4 do
       if btn(btnv[i]) or love.keyboard.isDown(keys[i]) then pressed = i end
@@ -2293,8 +2299,8 @@ function _update()
     end
 
     if btn(0, 0) or love.keyboard.isDown("a") then pilot:turn_left() end
-    if btn(1, 0) or love.keyboard.isDown("s") then pilot:turn_right() end
-    if btn(3, 0) or love.keyboard.isDown("r") then pilot:reverse_direction() end
+    if btn(1, 0) or love.keyboard.isDown("d") then pilot:turn_right() end
+    if btn(3, 0) or love.keyboard.isDown("s") then pilot:reverse_direction() end
     if btn(5, 0) or love.keyboard.isDown(".") or (mousemode == 1 and mbtn == 1 or mbtn == 3) then pilot:fire_weapon() end
 
     for index, p in ipairs(projectiles) do p:update(pilot.velocity_vector) end
