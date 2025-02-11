@@ -44,10 +44,10 @@ do
   Vector = _obj_0.Vector
 end
 
-local ControlPad
+local TouchInput
 do
-  local _obj_0 = require("control_pad")
-  ControlPad = _obj_0.ControlPad
+  local _obj_0 = require("touch_input")
+  TouchInput = _obj_0.TouchInput
 end
 
 function stat(args)
@@ -360,7 +360,7 @@ function love.load(arg)
   -- game_screen.pixel_width, game_screen.pixel_height = 256, 256
   starfield_count = floor(10 * (game_screen.pixel_width * game_screen.pixel_height) / (128 * 128))
 
-  buttons = ControlPad(game_screen.screen_width, game_screen.screen_height, true)
+  buttons = TouchInput(game_screen.screen_width, game_screen.screen_height, true)
 
   pixelfont = love.graphics.newFont("PICO-8.ttf", 5)
   -- pixelfont = love.graphics.newFont("Droid Sans Mono.ttf", 12)
