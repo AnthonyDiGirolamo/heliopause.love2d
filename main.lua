@@ -8,11 +8,33 @@ local round, randomseed, random, random_int, cos, sin, sqrt, sub, add, del, abs,
 
 do
   local _obj_0 = require("helpers")
-  rect, rectfill, circfill, cls, color, round, randomseed, random, random_int, cos, sin, sqrt, sub, add, del, abs, min, max, floor, ceil, sset, band, bor, bxor, bnot, shl, shr =
-      _obj_0.rect, _obj_0.rectfill, _obj_0.circfill, _obj_0.cls, _obj_0.color, _obj_0.round, _obj_0.randomseed,
-      _obj_0.random, _obj_0.random_int, _obj_0.cos, _obj_0.sin, _obj_0.sqrt, _obj_0.sub, _obj_0.add, _obj_0.del,
-      _obj_0.abs, _obj_0.min, _obj_0.max, _obj_0.floor, _obj_0.ceil, _obj_0.sset, _obj_0.band, _obj_0.bor, _obj_0.bxor,
-      _obj_0.bnot, _obj_0.shl, _obj_0.shr
+  rect       =  _obj_0.rect
+  rectfill   =  _obj_0.rectfill
+  circfill   =  _obj_0.circfill
+  cls        =  _obj_0.cls
+  color      =  _obj_0.color
+  round      =  _obj_0.round
+  randomseed =  _obj_0.randomseed
+  random     =  _obj_0.random
+  random_int =  _obj_0.random_int
+  cos        =  _obj_0.cos
+  sin        =  _obj_0.sin
+  sqrt       =  _obj_0.sqrt
+  sub        =  _obj_0.sub
+  add        =  _obj_0.add
+  del        =  _obj_0.del
+  abs        =  _obj_0.abs
+  min        =  _obj_0.min
+  max        =  _obj_0.max
+  floor      =  _obj_0.floor
+  ceil       =  _obj_0.ceil
+  sset       =  _obj_0.sset
+  band       =  _obj_0.band
+  -- bor        =  _obj_0.bor
+  -- bxor       =  _obj_0.bxor
+  -- bnot       =  _obj_0.bnot
+  -- shl        =  _obj_0.shl
+  -- shr        =  _obj_0.shr
 end
 
 -- load vector.moon
@@ -151,7 +173,7 @@ function GameScreen:set_pixel_screen_size()
         starfield_count = new_star_count
         -- new stars are added/deleted in sector:scroll_starfield()
 
-        -- ship particle debris (sparks) and explosions
+        -- Ship particle debris (sparks) and explosions
         for index, p in ipairs(particles) do p.screen_position:add(screen_center_diff) end
 
         for index, p in ipairs(projectiles) do
@@ -264,7 +286,7 @@ function GameScreen:set_int_zoom(level)
     local stars_to_add = starfield_count - #sect.starfield
     for i = 1, stars_to_add do
       if #sect.starfield >= 600 then break end
-      add(sect.starfield, star.new():reset())
+      add(sect.starfield, Star.new():reset())
     end
   end -- if sect
 
@@ -300,7 +322,7 @@ end
 -- split_start=1
 -- star_colors=nsplit"xaecd76|x98d165|x421051|x767676|x656565|x515151|"
 ---- star_colors={{0xa,0xe,0xc,0xd,0x7,0x6},{0x9,0x8,0xd,0x1,0x6,0x5},{0x4,0x2,0x1,0x0,0x5,0x1},{0x7,0x6,0x7,0x6,0x7,0x6},{0x6,0x5,0x6,0x5,0x6,0x5},{0x5,0x1,0x5,0x1,0x5,0x1}}
--- sect = sector.new()
+-- sect = Sector.new()
 
 local debugfont_size = 10
 
@@ -397,7 +419,7 @@ function love.keypressed(key)
   if key == "b" then
     local px = pilot.sector_position.x
     local py = pilot.sector_position.y
-    add(sect.planets, planet.new(px, py, ((1 - Vector(px, py):angle()) - .25) % 1))
+    add(sect.planets, Planet.new(px, py, ((1 - Vector(px, py):angle()) - .25) % 1))
   end
   if key == "j" then load_sector() end
   if key == "c" then
@@ -485,8 +507,9 @@ function love.draw()
   love.graphics.setBlendMode("alpha")
   love.graphics.setColor(255, 255, 255, 255)
 
-  -- don't draw control buttons for now
-  -- buttons:draw()
+  -- TODO: Check if touchscreen is supported with love2d
+  -- Note: touch screen buttons work on GPD win max 2 linux
+  buttons:draw()
 
   color(7)
   love.graphics.setFont(debugfont)
@@ -590,9 +613,9 @@ function format(num)
   return floor(n) .. "." .. round((n % 1) * 10)
 end
 
-ship = {}
-ship.__index = ship
-function ship.new(h)
+Ship = {}
+Ship.__index = Ship
+function Ship.new(h)
   local shp = {
     npc = false,
     hostile = h,
@@ -610,11 +633,11 @@ function ship.new(h)
     orders = {},
     last_fire_time = -6
   }
-  setmetatable(shp, ship)
+  setmetatable(shp, Ship)
   return shp
 end
 
-function ship:buildship(seed, stype)
+function Ship:buildship(seed, stype)
   self.ship_type_index = stype or random_int(#ship_types) + 1
 
   local seed_value = seed or random_int(32767)
@@ -686,18 +709,18 @@ function ship:buildship(seed, stype)
   return self
 end
 
-function ship:set_position_near_object(obj)
+function Ship:set_position_near_object(obj)
   local radius = obj.radius or obj.sprite_rows
   self.sector_position = rotated_angle(1.2 * radius) + obj.sector_position
   self:reset_velocity()
 end
 
-function ship:clear_target()
+function Ship:clear_target()
   self.target_index = nil
   self.target = nil
 end
 
-function ship:targeted_color()
+function Ship:targeted_color()
   if self.hostile then
     return 8, 2
   else
@@ -705,7 +728,7 @@ function ship:targeted_color()
   end
 end
 
-function ship:draw_sprite_rotated(offscreen_pos, angle)
+function Ship:draw_sprite_rotated(offscreen_pos, angle)
   if self.dead then return end
   local screen_position = offscreen_pos or self.screen_position
   local a = angle or self.angle_radians
@@ -747,7 +770,7 @@ function ship:draw_sprite_rotated(offscreen_pos, angle)
           -- sfx(55,2)
           if not offscreen_pos then
             for i = 1, random_int(4, 2), 1 do
-              add(particles, spark.new(pixel1 + zoom_offset, rotated_angle(random(.25) + .25) + self.velocity_vector,
+              add(particles, Spark.new(pixel1 + zoom_offset, rotated_angle(random(.25) + .25) + self.velocity_vector,
                                        color, 128 + random_int(32)))
             end
           end
@@ -783,7 +806,7 @@ function ship:draw_sprite_rotated(offscreen_pos, angle)
                 note_add("thruster malfunction")
               end
               -- if random()<.5 then
-              add(particles, spark.new(pixel1, rotated_angle(random(2) + 1) + self.velocity_vector, color, 128))
+              add(particles, Spark.new(pixel1, rotated_angle(random(2) + 1) + self.velocity_vector, color, 128))
               -- end
               del(projectiles, projectile)
               self.sprite[x][y] = -5
@@ -812,21 +835,21 @@ function ship:draw_sprite_rotated(offscreen_pos, angle)
   end
 end
 
-function ship:turn_left()
+function Ship:turn_left()
   self:rotate(self.turn_rate * love.timer.getDelta())
 end
 
-function ship:turn_right()
+function Ship:turn_right()
   self:rotate(-self.turn_rate * love.timer.getDelta())
 end
 
-function ship:rotate(signed_degrees)
+function Ship:rotate(signed_degrees)
   self.angle = (self.angle + signed_degrees) % 360
   self.angle_radians = self.angle / 360
   self.heading = (450 - self.angle) % 360
 end
 
-function ship:draw()
+function Ship:draw()
   text(self:hp_string(), 0, 0, self:hp_color())
   local o = nil
   local co = self.orders[#self.orders]
@@ -858,15 +881,15 @@ function ship:draw()
 
 end
 
-function ship:hp_color()
+function Ship:hp_color()
   return health_colormap[ceil(10 * self.hp_percent)]
 end
 
-function ship:hp_string()
+function Ship:hp_string()
   return "hp " .. round(100 * self.hp_percent) .. "% " .. self.hp .. "/" .. self.max_hp
 end
 
-function ship:data(y)
+function Ship:data(y)
   rectfill(0, y + 34, 127, y, 0)
   rect(0, y + 34, 127, y, 6)
   self:draw_sprite_rotated(Vector(104, y + 17), 0)
@@ -874,7 +897,7 @@ function ship:data(y)
            format(self.deltav * 30.593514175) .. " g\nturn rate  " .. self.turn_rate .. " deg/sec", 3, y + 3)
 end
 
-function ship:is_visible(player_ship_pos)
+function Ship:is_visible(player_ship_pos)
   local size = round(self.sprite_rows / 2)
   local screen_position = (self.sector_position - player_ship_pos + game_screen.screen_center):round()
   self.screen_position = screen_position
@@ -883,16 +906,16 @@ function ship:is_visible(player_ship_pos)
              zoom_offset.y > 0 - size
 end
 
-function ship:update_location()
+function Ship:update_location()
   if self.velocity > 0 then self.sector_position:add(self.velocity_vector) end
 end
 
-function ship:reset_velocity()
+function Ship:reset_velocity()
   self.velocity_vector = Vector()
   self.velocity = 0
 end
 
-function ship:predict_sector_position()
+function Ship:predict_sector_position()
   if self.velocity > 0 then
     return self.sector_position + self.velocity_vector * 4
   else
@@ -900,13 +923,13 @@ function ship:predict_sector_position()
   end
 end
 
-function ship:set_destination(dest)
+function Ship:set_destination(dest)
   self.destination = dest.sector_position
   self:update_steering_velocity()
   self.max_distance_to_destination = self.distance_to_destination
 end
 
-function ship:flee()
+function Ship:flee()
   self:set_destination(self.last_hit_attacking_ship)
   self:update_steering_velocity(1)
   local away_from_enemy = self.steer_vel:angle()
@@ -922,13 +945,13 @@ function ship:flee()
   end
 end
 
-function ship:update_steering_velocity(modifier)
+function Ship:update_steering_velocity(modifier)
   local desired_velocity = self.sector_position - self.destination
   self.distance_to_destination = desired_velocity:length()
   self.steer_vel = (desired_velocity - self.velocity_vector) * (modifier or -1)
 end
 
-function ship:seek()
+function Ship:seek()
   if self.seektime % 20 == 0 then self:set_destination(self.target) end
   self.seektime = self.seektime + 1
 
@@ -950,7 +973,7 @@ function ship:seek()
   end
 end
 
-function ship:fly_towards_destination()
+function Ship:fly_towards_destination()
   self:update_steering_velocity()
   if self.distance_to_destination > self.max_distance_to_destination * .9 then
     if self:rotate_towards_heading(self.steer_vel:angle()) then self:apply_thrust() end
@@ -961,37 +984,37 @@ function ship:fly_towards_destination()
   end
 end
 
-function ship:approach_object(obj)
+function Ship:approach_object(obj)
   local obj = obj or sect.planets[random_int(#sect.planets) + 1]
   self:set_destination(obj)
   self:reset_orders(self.fly_towards_destination)
   if self.velocity > 0 then add(self.orders, self.full_stop) end
 end
 
-function ship:follow_cur_order()
+function Ship:follow_cur_order()
   local order = self.orders[#self.orders]
   if order then order(self) end
 end
 
-function ship:order_done(new_order)
+function Ship:order_done(new_order)
   self.orders[#self.orders] = new_order
 end
 
-function ship:reset_orders(new_order)
+function Ship:reset_orders(new_order)
   self.orders = {}
   if new_order then add(self.orders, new_order) end
 end
 
-function ship:cut_thrust()
+function Ship:cut_thrust()
   self.accelerating = false
   self.cur_deltav = 0
 end
 
-function ship:wait()
+function Ship:wait()
   if secondcount > self.wait_duration + self.wait_time then self:order_done() end
 end
 
-function ship:full_stop()
+function Ship:full_stop()
   if self.velocity > 0 and self:reverse_direction() then
     self:apply_thrust()
     if self.velocity < 1.2 * self.deltav then
@@ -1001,19 +1024,19 @@ function ship:full_stop()
   end
 end
 
-function ship:fire_missile(weapon)
+function Ship:fire_missile(weapon)
   if self.target and secondcount > 5 + self.last_fire_time then
     self.last_fire_time = secondcount
-    add(projectiles, missile.new(self, self.target))
+    add(projectiles, Missile.new(self, self.target))
     -- self:pilotsfx(54)
   end
 end
 
--- function ship:pilotsfx(n,c)
+-- function Ship:pilotsfx(n,c)
 --   if self==pilot then sfx(n,c or 1) end
 -- end
 
-function ship:fire_weapon()
+function Ship:fire_weapon()
   local hardpoints = {1, -1}
   if self.ship_type_index ~= 2 then hardpoints = {0} end
   local rate = 3
@@ -1021,14 +1044,14 @@ function ship:fire_weapon()
   if framecount % rate == 0 then
     for index, y in ipairs(hardpoints) do
       add(projectiles,
-          cannon.new(rotated_vector(self.angle_radians, self.sprite_rows / 2 - 1, y * (self.sprite_columns / 4)) +
+          Cannon.new(rotated_vector(self.angle_radians, self.sprite_rows / 2 - 1, y * (self.sprite_columns / 4)) +
                          self.screen_position, rotated_vector(self.angle_radians, 6) + self.velocity_vector, 12, self))
     end
     -- self:pilotsfx(36)
   end
 end
 
-function ship:apply_thrust(max_velocity)
+function Ship:apply_thrust(max_velocity)
   self.accelerating = true
   if self.cur_deltav < self.deltav then
     self.cur_deltav = self.cur_deltav + (self.deltav * love.timer.getDelta())
@@ -1045,7 +1068,7 @@ function ship:apply_thrust(max_velocity)
   local velocity_vector = self.velocity_vector
   local velocity
   local engine_location = rotated_vector(a, self.sprite_rows * -.5) + self.screen_position
-  add(particles, thrustexhaust.new(engine_location, additional_velocity_vector * -1.3 * self.sprite_rows))
+  add(particles, ThrustExhaust.new(engine_location, additional_velocity_vector * -1.3 * self.sprite_rows))
   velocity_vector:add(additional_velocity_vector)
   velocity = velocity_vector:length()
   self.velocity_angle = velocity_vector:angle()
@@ -1054,7 +1077,7 @@ function ship:apply_thrust(max_velocity)
   self.velocity_vector = velocity_vector
 end
 
-function ship:dampen_speed()
+function Ship:dampen_speed()
   if self.velocity < 1.2 * self.deltav then
     self:reset_velocity()
   else
@@ -1065,11 +1088,11 @@ function ship:dampen_speed()
   end
 end
 
-function ship:reverse_direction()
+function Ship:reverse_direction()
   if self.velocity > 0 then return self:rotate_towards_heading(self.velocity_angle_opposite) end
 end
 
-function ship:rotate_towards_heading(heading)
+function Ship:rotate_towards_heading(heading)
   local delta = (heading * 360 - self.angle + 180) % 360 - 180
   if delta ~= 0 then
     local r = (self.turn_rate * love.timer.getDelta()) * delta / abs(delta)
@@ -1151,9 +1174,9 @@ function next_ship_target(ship, random)
   return true
 end
 
-missile = {}
-missile.__index = missile
-function missile.new(fship, t)
+Missile = {}
+Missile.__index = Missile
+function Missile.new(fship, t)
   return setmetatable({
     sector_position = fship.sector_position:clone(),
     screen_position = fship.screen_position:clone(),
@@ -1167,10 +1190,10 @@ function missile.new(fship, t)
     hp_percent = 1,
     duration = 512,
     damage = 20
-  }, missile)
+  }, Missile)
 end
 
-function missile:update()
+function Missile:update()
   self.destination = self.target:predict_sector_position()
   self:update_steering_velocity()
   self.angle_radians = self.steer_vel:angle()
@@ -1179,7 +1202,7 @@ function missile:update()
   self:update_location()
 end
 
-function missile:draw(shipvel, offscreen_pos)
+function Missile:draw(shipvel, offscreen_pos)
   local screen_position = (offscreen_pos or self.screen_position) + zoom_offset
   self.last_offscreen_pos = offscreen_pos
   if self:is_visible(pilot.sector_position) or offscreen_pos then
@@ -1187,24 +1210,24 @@ function missile:draw(shipvel, offscreen_pos)
   end
 end
 
-setmetatable(missile, {__index = ship})
+setmetatable(Missile, {__index = Ship})
 
-star = {}
-star.__index = star
-function star.new()
-  return setmetatable({position = Vector(), color = 7, speed = 1}, star)
+Star = {}
+Star.__index = Star
+function Star.new()
+  return setmetatable({position = Vector(), color = 7, speed = 1}, Star)
 end
 
-function star:reset(x, y)
+function Star:reset(x, y)
   self.position = Vector(x or random_int(game_screen.pixel_width), y or random_int(game_screen.pixel_height))
   self.color = random_int(#star_colors[star_color_monochrome + star_color_index + 1]) + 1
   self.speed = (random(.75) + 0.25)
   return self
 end
 
-sun = {}
-sun.__index = sun
-function sun.new(radius, x, y)
+Sun = {}
+Sun.__index = Sun
+function Sun.new(radius, x, y)
   local r = radius or 64 + random_int(128)
   local c = random_int(6, 1)
   return setmetatable({
@@ -1213,10 +1236,10 @@ function sun.new(radius, x, y)
     sun_color_index = c,
     color = sun_colors[c + 5],
     sector_position = Vector(x or 0, y or 0)
-  }, sun)
+  }, Sun)
 end
 
-function sun:draw(ship_pos)
+function Sun:draw(ship_pos)
   local screen_position = self.screen_position + zoom_offset
   if stellar_object_is_visible(self, ship_pos) then
     for i = 0, 1 do screen_position:draw_circle(self.radius - i * 3, sun_colors[i * 5 + self.sun_color_index], true) end
@@ -1231,24 +1254,24 @@ function stellar_object_is_visible(obj, ship_pos)
 end
 
 -- starfield_count=40
-sector = {}
-sector.__index = sector
-function sector.new()
+Sector = {}
+Sector.__index = Sector
+function Sector.new()
   local sec = {seed = random_int(32767), planets = {}, starfield = {}}
   randomseed(sec.seed)
-  for i = 1, starfield_count do add(sec.starfield, star.new():reset()) end
-  setmetatable(sec, sector)
+  for i = 1, starfield_count do add(sec.starfield, Star.new():reset()) end
+  setmetatable(sec, Sector)
   return sec
 end
 
-function sector:reset_planet_visibility()
+function Sector:reset_planet_visibility()
   for index, p in ipairs(self.planets) do
     p.rendered_circle = false
     p.rendered_terrain = false
   end
 end
 
-function sector:new_planet_along_elipse()
+function Sector:new_planet_along_elipse()
   local x, y, sdist
   local planet_nearby = true
   while (planet_nearby) do
@@ -1261,29 +1284,29 @@ function sector:new_planet_along_elipse()
     for index, p in ipairs(self.planets) do sdist = min(sdist, vector_distance(Vector(x, y), p.sector_position / 33)) end
     planet_nearby = sdist < 15
   end
-  return planet.new(x * 33, y * 33, ((1 - Vector(x, y):angle()) - .25) % 1)
+  return Planet.new(x * 33, y * 33, ((1 - Vector(x, y):angle()) - .25) % 1)
 end
 
-function sector:add_to_starfield_at_screen_edge(amount)
+function Sector:add_to_starfield_at_screen_edge(amount)
   for i = 0, amount do
     local side = round(random(3)) -- 0 1 2 3
     if side == 0 then
       -- left
-      add(sect.starfield, star.new():reset(0, false))
+      add(sect.starfield, Star.new():reset(0, false))
     elseif side == 1 then
       -- right
-      add(sect.starfield, star.new():reset(game_screen.pixel_width, false))
+      add(sect.starfield, Star.new():reset(game_screen.pixel_width, false))
     elseif side == 2 then
       -- top
-      add(sect.starfield, star.new():reset(false, 0))
+      add(sect.starfield, Star.new():reset(false, 0))
     elseif side == 3 then
       -- bottom
-      add(sect.starfield, star.new():reset(false, game_screen.pixel_height))
+      add(sect.starfield, Star.new():reset(false, game_screen.pixel_height))
     end
   end
 end
 
-function sector:draw_starfield(shipvel)
+function Sector:draw_starfield(shipvel)
   local lstart, lend
   for index, star in ipairs(self.starfield) do
     local position = star.position + zoom_offset
@@ -1299,7 +1322,7 @@ function sector:draw_starfield(shipvel)
   end
 end
 
-function sector:scroll_starfield(shipvel)
+function Sector:scroll_starfield(shipvel)
   -- did starcount change?
   local stars_to_add = starfield_count - #self.starfield
   -- add new stars if stars_to_add >= 1
@@ -1352,29 +1375,29 @@ function is_offscreen(p, m)
   end
 end
 
-spark = {}
-spark.__index = spark
-function spark.new(p, pv, c, d)
-  return setmetatable({screen_position = p, particle_velocity = pv, color = c, duration = d or random_int(7, 2)}, spark)
+Spark = {}
+Spark.__index = Spark
+function Spark.new(p, pv, c, d)
+  return setmetatable({screen_position = p, particle_velocity = pv, color = c, duration = d or random_int(7, 2)}, Spark)
 end
 
-function spark:update(shipvel)
+function Spark:update(shipvel)
   self.screen_position:add(self.particle_velocity - shipvel)
   self.duration = self.duration - 1
 end
 
-function spark:draw(shipvel)
+function Spark:draw(shipvel)
   self.screen_position:draw_point(self.color)
   self:update(shipvel)
 end
 
 function make_explosion(pixel1, size, colorcount, center_velocity)
-  add(particles, explosion.new(pixel1, size, colorcount, center_velocity))
+  add(particles, Explosion.new(pixel1, size, colorcount, center_velocity))
 end
 
-explosion = {}
-explosion.__index = explosion
-function explosion.new(position, size, colorcount, shipvel)
+Explosion = {}
+Explosion.__index = Explosion
+function Explosion.new(position, size, colorcount, shipvel)
   local explosion_size_factor = random()
   return setmetatable({
     screen_position = position:clone(),
@@ -1383,10 +1406,10 @@ function explosion.new(position, size, colorcount, shipvel)
     radius_delta = explosion_size_factor * random(.5),
     len = colorcount - 3,
     duration = colorcount
-  }, explosion)
+  }, Explosion)
 end
 
-function explosion:draw(shipvel)
+function Explosion:draw(shipvel)
   local screen_position = self.screen_position + zoom_offset
   local r = round(self.radius)
   for i = r + 3, r, -1 do
@@ -1397,11 +1420,11 @@ function explosion:draw(shipvel)
   self.radius = self.radius - self.radius_delta
 end
 
-setmetatable(explosion, {__index = spark})
+setmetatable(Explosion, {__index = Spark})
 
-cannon = {}
-cannon.__index = cannon
-function cannon.new(p, pv, c, ship)
+Cannon = {}
+Cannon.__index = Cannon
+function Cannon.new(p, pv, c, ship)
   return setmetatable({
     screen_position = p,
     position2 = p:clone(),
@@ -1409,27 +1432,27 @@ function cannon.new(p, pv, c, ship)
     color = c,
     firing_ship = ship,
     duration = 16
-  }, cannon)
+  }, Cannon)
 end
 
-function cannon:update(shipvel)
+function Cannon:update(shipvel)
   self.position2 = self.screen_position:clone()
   self.screen_position:add(self.particle_velocity - shipvel)
   self.duration = self.duration - 1
 end
-function cannon:draw(shipvel)
+function Cannon:draw(shipvel)
   local p2 = self.position2 + zoom_offset
   local screen_position = self.screen_position + zoom_offset
   p2:draw_line(screen_position, self.color)
 end
 
-thrustexhaust = {}
-thrustexhaust.__index = thrustexhaust
-function thrustexhaust.new(p, pv)
-  return setmetatable({screen_position = p, particle_velocity = pv, duration = 0}, thrustexhaust)
+ThrustExhaust = {}
+ThrustExhaust.__index = ThrustExhaust
+function ThrustExhaust.new(p, pv)
+  return setmetatable({screen_position = p, particle_velocity = pv, duration = 0}, ThrustExhaust)
 end
 
-function thrustexhaust:draw(shipvel)
+function ThrustExhaust:draw(shipvel)
   local c, pv = random_int(11, 9), self.particle_velocity
   local deflection, flicker = pv:perpendicular() * 0.7, pv * (random(2) + 2)
   flicker = flicker + deflection * (random() - .5)
@@ -1438,7 +1461,7 @@ function thrustexhaust:draw(shipvel)
   for index, a in ipairs {p1a + deflection, p1a + deflection * -1} do
     for index, b in ipairs {p0, screen_position} do a:draw_line(b, c) end
   end
-  if random() > .4 then add(particles, spark.new(p0, shipvel + (flicker * .25), c)) end
+  if random() > .4 then add(particles, Spark.new(p0, shipvel + (flicker * .25), c)) end
   self.screen_position:add(pv - shipvel)
   self.duration = self.duration - 1
 end
@@ -1551,9 +1574,9 @@ function new_planet(a)
   }
 end
 
-planet = {}
-planet.__index = planet
-function planet.new(x, y, phase, r)
+Planet = {}
+Planet.__index = Planet
+function Planet.new(x, y, phase, r)
   local planet_type = planet_types[random_int(#planet_types) + 1]
 
   local radius = r or random_int(130, planet_type.min_size)
@@ -1574,10 +1597,10 @@ function planet.new(x, y, phase, r)
     rendered_circle = false,
     rendered_terrain = false,
     color = planet_type.mmap_color
-  }, planet)
+  }, Planet)
 end
 
-function planet:draw(ship_pos)
+function Planet:draw(ship_pos)
   if stellar_object_is_visible(self, ship_pos) then
     -- self.screen_position:draw_circle(
     --   self.radius,
@@ -1603,7 +1626,7 @@ function planet:draw(ship_pos)
   end
 end
 
-function planet:render_planet(fullmap, render_far_side)
+function Planet:render_planet(fullmap, render_far_side)
   local radius = self.radius - 1
   if fullmap then radius = 47 end
 
@@ -1770,7 +1793,7 @@ function add_npc(pos, pirate)
     pirates = pirates + 1
   end
 
-  local npc = ship.new(pirate):buildship(nil, t)
+  local npc = Ship.new(pirate):buildship(nil, t)
   npc:set_position_near_object(pos)
   npc:rotate(random_int(360))
   npc.npc = true
@@ -1780,9 +1803,9 @@ end
 
 function load_sector()
   warpsize = pilot.sprite_rows
-  sect = sector.new()
+  sect = Sector.new()
   note_add("arriving in system ngc " .. sect.seed)
-  add(sect.planets, sun.new())
+  add(sect.planets, Sun.new())
   for i = 1, round(random(3, 24)) do
     local p = sect:new_planet_along_elipse()
     -- TODO new_planet_along_elipse returns nans
@@ -1854,7 +1877,7 @@ function _init()
   paused = false
   landed = false
   particles = {}
-  pilot = ship.new()
+  pilot = Ship.new()
   -- pilot.npc = true
   pilot:buildship(nil, 2)
   load_sector()
@@ -1981,7 +2004,7 @@ end
 
 function addyardships()
   shipyard = {}
-  for i = 1, 2 do add(shipyard, ship.new():buildship(nil, random_int(#ship_types, 1))) end
+  for i = 1, 2 do add(shipyard, Ship.new():buildship(nil, random_int(#ship_types, 1))) end
 end
 
 function buyship(i)
